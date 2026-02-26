@@ -1,0 +1,13 @@
+.git
+.gitignore
+.env
+.env.local
+.env.development
+.env.production
+node_modules
+.next
+README.md
+Dockerfile
+.dockerignore
+.github
+drizzle/migrations
