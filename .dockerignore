@@ -10,4 +10,3 @@ README.md
 Dockerfile
 .dockerignore
 .github
-drizzle/migrations
