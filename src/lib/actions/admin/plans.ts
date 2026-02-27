@@ -8,6 +8,7 @@ import type { ActionResult } from "@/lib/types";
 import type { Plan } from "@/lib/db/schema";
 import { updatePlanSchema, type UpdatePlanInput } from "@/lib/validations/plan";
 import { revalidatePath } from "next/cache";
+import { createAuditLog } from "@/lib/audit-log";
 
 async function requireSuperAdmin() {
   const session = await auth();
@@ -52,7 +53,7 @@ export async function updatePlan(
   input: UpdatePlanInput
 ): Promise<ActionResult<Plan>> {
   try {
-    await requireSuperAdmin();
+    const session = await requireSuperAdmin();
     const parsed = updatePlanSchema.safeParse(input);
     if (!parsed.success) {
       return {
@@ -75,6 +76,14 @@ export async function updatePlan(
       .returning();
 
     if (!updated) return { success: false, error: "Plano não encontrado" };
+
+    await createAuditLog({
+      userId: session.user.id,
+      action: "plan.updated",
+      resourceType: "PLAN",
+      resourceId: planId,
+      details: { changes: rest },
+    });
 
     revalidatePath("/admin/plans");
     revalidatePath(`/admin/plans/${planId}`);

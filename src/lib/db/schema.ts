@@ -308,6 +308,7 @@ export const auditLogs = pgTable(
     entityId: text("entity_id"),
     metadata: json("metadata"),
     ipAddress: text("ip_address"),
+    userAgent: text("user_agent"),
     createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
   },
   (t) => [
@@ -315,6 +316,16 @@ export const auditLogs = pgTable(
     index("audit_logs_created_at_idx").on(t.createdAt),
   ]
 );
+
+// ============================================================
+// PLATFORM SETTINGS
+// ============================================================
+export const platformSettings = pgTable("platform_settings", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+  updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
+  updatedBy: text("updated_by").references(() => users.id, { onDelete: "set null" }),
+});
 
 // ============================================================
 // TICKETS
@@ -389,6 +400,7 @@ export type NewTicket = typeof tickets.$inferInsert;
 export type TicketMessage = typeof ticketMessages.$inferSelect;
 export type Plan = typeof plans.$inferSelect;
 export type NewPlan = typeof plans.$inferInsert;
+export type PlatformSetting = typeof platformSettings.$inferSelect;
 
 // ============================================================
 // HELPERS

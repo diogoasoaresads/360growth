@@ -14,6 +14,8 @@ import {
   Users,
   Settings,
   ChevronRight,
+  DollarSign,
+  FileText,
 } from "lucide-react";
 
 const navItems = [
@@ -21,6 +23,7 @@ const navItems = [
     label: "Dashboard",
     href: "/admin",
     icon: LayoutDashboard,
+    exact: true,
   },
   {
     label: "Agências",
@@ -43,8 +46,18 @@ const navItems = [
     icon: TicketIcon,
   },
   {
+    label: "Faturamento",
+    href: "/admin/billing",
+    icon: DollarSign,
+  },
+  {
+    label: "Logs",
+    href: "/admin/logs",
+    icon: FileText,
+  },
+  {
     label: "Configurações",
-    href: "/super-admin/settings",
+    href: "/admin/settings",
     icon: Settings,
   },
 ];
@@ -76,7 +89,9 @@ export function SuperAdminSidebar() {
         <nav className="space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = pathname.startsWith(item.href);
+            const isActive = item.exact
+            ? pathname === item.href
+            : pathname.startsWith(item.href);
             return (
               <Link
                 key={item.href}
