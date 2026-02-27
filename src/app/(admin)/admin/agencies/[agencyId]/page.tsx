@@ -14,6 +14,8 @@ import {
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Users, Building2, Ticket, TrendingUp, Globe, Phone, Mail, Calendar } from "lucide-react";
+import { getAgencyUsage, getAgencyPlanLimits } from "@/lib/plan-limits";
+import { UsagePanel } from "./usage-panel";
 
 interface Props {
   params: Promise<{ agencyId: string }>;
@@ -31,11 +33,15 @@ export default async function AgencyOverviewPage({ params }: Props) {
     [{ clientsCount }],
     [{ ticketsCount }],
     [{ dealsCount }],
+    usage,
+    limits,
   ] = await Promise.all([
     db.select({ membersCount: count() }).from(agencyUsers).where(eq(agencyUsers.agencyId, agencyId)),
     db.select({ clientsCount: count() }).from(clients).where(eq(clients.agencyId, agencyId)),
     db.select({ ticketsCount: count() }).from(tickets).where(eq(tickets.agencyId, agencyId)),
     db.select({ dealsCount: count() }).from(deals).where(eq(deals.agencyId, agencyId)),
+    getAgencyUsage(agencyId),
+    getAgencyPlanLimits(agencyId),
   ]);
 
   return (
@@ -133,6 +139,9 @@ export default async function AgencyOverviewPage({ params }: Props) {
           </CardContent>
         </Card>
       </div>
+
+      {/* Usage Panel */}
+      <UsagePanel usage={usage} limits={limits} />
     </div>
   );
 }

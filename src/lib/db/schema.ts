@@ -39,6 +39,13 @@ export interface PlanFeatures {
   advancedReports: boolean;
 }
 
+export interface PlanLimits {
+  maxUsers: number;
+  maxClients: number;
+  maxDeals: number;
+  maxTickets: number;
+}
+
 export const DEFAULT_PLAN_FEATURES: PlanFeatures = {
   maxMembers: 5,
   maxClients: 50,
@@ -130,6 +137,7 @@ export const plans = pgTable("plans", {
   stripePriceId: text("stripe_price_id"),
   stripePriceIdYearly: text("stripe_price_id_yearly"),
   featuresConfig: json("features_config").$type<PlanFeatures>(),
+  limits: json("limits").$type<PlanLimits>(),
   features: text("features").array(),
   isActive: boolean("is_active").notNull().default(true),
   sortOrder: integer("sort_order").notNull().default(0),

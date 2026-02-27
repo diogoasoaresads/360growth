@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/form";
 
 import { updatePlanSchema, type UpdatePlanInput } from "@/lib/validations/plan";
+import type { PlanLimits } from "@/lib/db/schema";
 import { updatePlan } from "@/lib/actions/admin/plans";
 import type { Plan, PlanFeatures } from "@/lib/db/schema";
 import { DEFAULT_PLAN_FEATURES } from "@/lib/db/schema";
@@ -48,6 +49,8 @@ export function PlanEditForm({ plan }: PlanEditFormProps) {
   const features: PlanFeatures =
     (plan.featuresConfig as PlanFeatures) ?? DEFAULT_PLAN_FEATURES;
 
+  const existingLimits = plan.limits as PlanLimits | null;
+
   const form = useForm<UpdatePlanInput>({
     resolver: zodResolver(updatePlanSchema),
     defaultValues: {
@@ -64,6 +67,12 @@ export function PlanEditForm({ plan }: PlanEditFormProps) {
       stripePriceIdYearly: plan.stripePriceIdYearly ?? "",
       features: plan.features ?? [],
       featuresConfig: features,
+      limits: {
+        maxUsers: existingLimits?.maxUsers ?? 0,
+        maxClients: existingLimits?.maxClients ?? 0,
+        maxDeals: existingLimits?.maxDeals ?? 0,
+        maxTickets: existingLimits?.maxTickets ?? 0,
+      },
     },
   });
 
@@ -378,6 +387,49 @@ export function PlanEditForm({ plan }: PlanEditFormProps) {
                   </FormItem>
                 )}
               />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Hard Limits (JSONB) */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Limites rígidos</CardTitle>
+            <CardDescription>
+              Limites aplicados por hard-enforcement antes de criar recursos. Use 0 para ilimitado.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+              {(
+                [
+                  { name: "limits.maxUsers" as const, label: "Máx. usuários" },
+                  { name: "limits.maxClients" as const, label: "Máx. clientes" },
+                  { name: "limits.maxDeals" as const, label: "Máx. negócios" },
+                  { name: "limits.maxTickets" as const, label: "Máx. tickets" },
+                ] as const
+              ).map(({ name, label }) => (
+                <FormField
+                  key={name}
+                  control={form.control}
+                  name={name}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{label}</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min={0}
+                          {...field}
+                          onChange={numField(field.onChange)}
+                        />
+                      </FormControl>
+                      <FormDescription>0 = ilimitado</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              ))}
             </div>
           </CardContent>
         </Card>

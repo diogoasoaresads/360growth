@@ -7,17 +7,22 @@ import { eq, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { createClientSchema, updateClientSchema } from "@/lib/validations/client";
 import type { CreateClientInput, UpdateClientInput } from "@/lib/validations/client";
+import { validatePlanLimit } from "@/lib/plan-limits";
 
-async function getAgencyId(): Promise<string> {
+async function getSession() {
   const session = await auth();
   if (!session?.user.agencyId) throw new Error("Unauthorized");
-  return session.user.agencyId;
+  return session;
 }
 
 export async function createClient(input: CreateClientInput) {
-  const agencyId = await getAgencyId();
+  const session = await getSession();
+  const agencyId = session.user.agencyId!;
   const parsed = createClientSchema.safeParse(input);
   if (!parsed.success) throw new Error("Dados inválidos");
+
+  const check = await validatePlanLimit(agencyId, "clients", session.user.id);
+  if (!check.allowed) throw new Error(check.error);
 
   const [client] = await db
     .insert(clients)
@@ -29,7 +34,8 @@ export async function createClient(input: CreateClientInput) {
 }
 
 export async function updateClient(id: string, input: UpdateClientInput) {
-  const agencyId = await getAgencyId();
+  const session = await getSession();
+  const agencyId = session.user.agencyId!;
   const parsed = updateClientSchema.safeParse(input);
   if (!parsed.success) throw new Error("Dados inválidos");
 
@@ -44,7 +50,8 @@ export async function updateClient(id: string, input: UpdateClientInput) {
 }
 
 export async function deleteClient(id: string) {
-  const agencyId = await getAgencyId();
+  const session = await getSession();
+  const agencyId = session.user.agencyId!;
 
   await db
     .delete(clients)

@@ -15,6 +15,13 @@
       "when": 1772222154190,
       "tag": "0001_add_feature_flags_and_config_columns",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1772233807289,
+      "tag": "0002_add_plan_limits_jsonb",
+      "breakpoints": true
     }
   ]
 }
