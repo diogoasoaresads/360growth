@@ -27,15 +27,8 @@ ARG NEXT_PUBLIC_APP_URL
 ENV NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=$NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
 
-# Database (needed for migration during build)
-ARG DATABASE_URL
-ENV DATABASE_URL=$DATABASE_URL
-
 # Build Next.js
 RUN npm run build
-
-# Run database migrations (Drizzle)
-RUN npm run db:migrate
 
 # =============================================================================
 # Stage 3: Runner
@@ -55,6 +48,15 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+# Full node_modules (includes drizzle-kit for runtime migrations)
+# Copied AFTER standalone so it overrides the standalone's minimal subset
+COPY --from=deps /app/node_modules ./node_modules
+
+# Migration files and drizzle config (needed by drizzle-kit migrate at startup)
+COPY --from=builder --chown=nextjs:nodejs /app/drizzle ./drizzle
+COPY --from=builder --chown=nextjs:nodejs /app/drizzle.config.ts ./drizzle.config.ts
+COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
+
 USER nextjs
 
 EXPOSE 3000
@@ -62,4 +64,5 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-CMD ["node", "server.js"]
+# Run migrations at container startup, then start the Next.js server
+CMD ["sh", "-c", "npm run db:migrate && node server.js"]
