@@ -1,8 +1,8 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { deals, clients } from "@/lib/db/schema";
+import { deals } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";

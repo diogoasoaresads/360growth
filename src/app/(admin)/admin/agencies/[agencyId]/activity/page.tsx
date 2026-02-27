@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { auditLogs, users } from "@/lib/db/schema";
-import { eq, desc, isNull, and } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { EmptyState } from "@/components/admin/empty-state";

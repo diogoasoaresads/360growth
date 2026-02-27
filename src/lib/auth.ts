@@ -5,7 +5,14 @@ import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { users, accounts, sessions, verificationTokens, agencyUsers } from "@/lib/db/schema";
+import {
+  users,
+  accounts,
+  sessions,
+  verificationTokens,
+  agencyUsers,
+  agencies,
+} from "@/lib/db/schema";
 import type { UserRole } from "@/lib/db/schema";
 
 const loginSchema = z.object({
@@ -50,6 +57,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const isValid = await bcrypt.compare(password, user.passwordHash);
         if (!isValid) return null;
 
+        // Track last login
+        await db
+          .update(users)
+          .set({ lastLoginAt: new Date() })
+          .where(eq(users.id, user.id));
+
         return {
           id: user.id,
           email: user.email,
@@ -65,15 +78,28 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (user) {
         token.id = user.id;
         token.role = (user as { role?: UserRole }).role;
+        token.isImpersonating = false;
+        token.originalAdminId = null;
       }
 
-      // Refresh agencyId on every token refresh
+      // Don't override impersonation token fields — they are manually set
+      // Only refresh agencyId if not impersonating
       if (token.id && token.role !== "SUPER_ADMIN") {
-        const agencyUser = await db.query.agencyUsers.findFirst({
-          where: eq(agencyUsers.userId, token.id as string),
-        });
+        const agencyUser = await db
+          .select({
+            agencyId: agencyUsers.agencyId,
+            role: agencyUsers.role,
+            agencyName: agencies.name,
+          })
+          .from(agencyUsers)
+          .leftJoin(agencies, eq(agencies.id, agencyUsers.agencyId))
+          .where(eq(agencyUsers.userId, token.id as string))
+          .limit(1)
+          .then((rows) => rows[0] ?? null);
+
         token.agencyId = agencyUser?.agencyId ?? null;
         token.agencyRole = agencyUser?.role ?? null;
+        token.agencyName = agencyUser?.agencyName ?? null;
       }
 
       if (trigger === "update" && session) {
@@ -88,6 +114,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.role = token.role as UserRole;
         session.user.agencyId = token.agencyId as string | null;
         session.user.agencyRole = token.agencyRole as string | null;
+        session.user.agencyName = (token.agencyName as string | null) ?? null;
+        session.user.isImpersonating = (token.isImpersonating as boolean) ?? false;
+        session.user.originalAdminId = (token.originalAdminId as string | null) ?? null;
       }
       return session;
     },
@@ -110,6 +139,9 @@ declare module "next-auth" {
       role: UserRole;
       agencyId: string | null;
       agencyRole: string | null;
+      agencyName: string | null;
+      isImpersonating: boolean;
+      originalAdminId: string | null;
     };
   }
 
@@ -124,5 +156,8 @@ declare module "@auth/core/jwt" {
     role?: UserRole;
     agencyId?: string | null;
     agencyRole?: string | null;
+    agencyName?: string | null;
+    isImpersonating?: boolean;
+    originalAdminId?: string | null;
   }
 }

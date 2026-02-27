@@ -10,17 +10,20 @@ import {
   LayoutDashboard,
   Building2,
   CreditCard,
-  TicketIcon,
+  Ticket,
   Users,
   Settings,
   ChevronRight,
+  DollarSign,
+  ScrollText,
 } from "lucide-react";
 
 const navItems = [
   {
     label: "Dashboard",
-    href: "/super-admin/dashboard",
+    href: "/admin",
     icon: LayoutDashboard,
+    exact: true,
   },
   {
     label: "Agências",
@@ -28,24 +31,34 @@ const navItems = [
     icon: Building2,
   },
   {
-    label: "Usuários",
-    href: "/super-admin/users",
-    icon: Users,
-  },
-  {
     label: "Planos",
     href: "/admin/plans",
     icon: CreditCard,
   },
   {
+    label: "Usuários",
+    href: "/admin/users",
+    icon: Users,
+  },
+  {
     label: "Tickets",
-    href: "/super-admin/tickets",
-    icon: TicketIcon,
+    href: "/admin/tickets",
+    icon: Ticket,
+  },
+  {
+    label: "Faturamento",
+    href: "/admin/billing",
+    icon: DollarSign,
   },
   {
     label: "Configurações",
-    href: "/super-admin/settings",
+    href: "/admin/settings",
     icon: Settings,
+  },
+  {
+    label: "Logs",
+    href: "/admin/logs",
+    icon: ScrollText,
   },
 ];
 
@@ -56,7 +69,7 @@ export function SuperAdminSidebar() {
     <aside className="flex h-screen w-64 flex-col bg-sidebar border-r border-sidebar-border">
       {/* Logo */}
       <div className="flex h-16 items-center px-6">
-        <Link href="/super-admin/dashboard" className="flex items-center gap-2">
+        <Link href="/admin" className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
             <span className="text-sm font-bold text-primary-foreground">A</span>
           </div>
@@ -76,7 +89,9 @@ export function SuperAdminSidebar() {
         <nav className="space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = pathname.startsWith(item.href);
+            const isActive = item.exact
+            ? pathname === item.href
+            : pathname.startsWith(item.href);
             return (
               <Link
                 key={item.href}

@@ -13,6 +13,7 @@ import {
   type UpdateAgencyInput,
 } from "@/lib/validations/agency";
 import { revalidatePath } from "next/cache";
+import { createAuditLog } from "@/lib/audit-log";
 
 async function requireSuperAdmin() {
   const session = await auth();
@@ -127,7 +128,7 @@ export async function createAgency(
   input: CreateAgencyInput
 ): Promise<ActionResult<Agency>> {
   try {
-    await requireSuperAdmin();
+    const session = await requireSuperAdmin();
     const parsed = createAgencySchema.safeParse(input);
     if (!parsed.success) {
       return {
@@ -161,6 +162,14 @@ export async function createAgency(
       })
       .returning();
 
+    await createAuditLog({
+      userId: session.user.id,
+      action: "agency.created",
+      resourceType: "AGENCY",
+      resourceId: agency.id,
+      details: { name: agency.name, slug: agency.slug },
+    });
+
     revalidatePath("/admin/agencies");
     return { success: true, data: agency };
   } catch (err) {
@@ -176,7 +185,7 @@ export async function updateAgency(
   input: UpdateAgencyInput
 ): Promise<ActionResult<Agency>> {
   try {
-    await requireSuperAdmin();
+    const session = await requireSuperAdmin();
     const parsed = updateAgencySchema.safeParse(input);
     if (!parsed.success) {
       return {
@@ -192,6 +201,14 @@ export async function updateAgency(
       .returning();
 
     if (!updated) return { success: false, error: "Agência não encontrada" };
+
+    await createAuditLog({
+      userId: session.user.id,
+      action: "agency.updated",
+      resourceType: "AGENCY",
+      resourceId: agencyId,
+      details: { changes: parsed.data },
+    });
 
     revalidatePath("/admin/agencies");
     revalidatePath(`/admin/agencies/${agencyId}`);
@@ -209,7 +226,7 @@ export async function toggleAgencyStatus(
   newStatus: "active" | "suspended"
 ): Promise<ActionResult<Agency>> {
   try {
-    await requireSuperAdmin();
+    const session = await requireSuperAdmin();
     const [updated] = await db
       .update(agencies)
       .set({
@@ -221,6 +238,14 @@ export async function toggleAgencyStatus(
       .returning();
 
     if (!updated) return { success: false, error: "Agência não encontrada" };
+
+    await createAuditLog({
+      userId: session.user.id,
+      action: newStatus === "suspended" ? "agency.suspended" : "agency.reactivated",
+      resourceType: "AGENCY",
+      resourceId: agencyId,
+      details: { newStatus },
+    });
 
     revalidatePath("/admin/agencies");
     revalidatePath(`/admin/agencies/${agencyId}`);
@@ -237,7 +262,7 @@ export async function deleteAgency(
   agencyId: string
 ): Promise<ActionResult<void>> {
   try {
-    await requireSuperAdmin();
+    const session = await requireSuperAdmin();
     const [updated] = await db
       .update(agencies)
       .set({
@@ -250,6 +275,13 @@ export async function deleteAgency(
       .returning();
 
     if (!updated) return { success: false, error: "Agência não encontrada" };
+
+    await createAuditLog({
+      userId: session.user.id,
+      action: "agency.deleted",
+      resourceType: "AGENCY",
+      resourceId: agencyId,
+    });
 
     revalidatePath("/admin/agencies");
     return { success: true, data: undefined };
