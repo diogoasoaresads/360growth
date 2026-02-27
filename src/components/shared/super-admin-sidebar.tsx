@@ -29,7 +29,7 @@ const navItems = [
   },
   {
     label: "Usuários",
-    href: "/super-admin/users",
+    href: "/admin/users",
     icon: Users,
   },
   {

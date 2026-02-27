@@ -15,6 +15,7 @@ import type { AdapterAccountType } from "next-auth/adapters";
 // ENUMS
 // ============================================================
 export type UserRole = "SUPER_ADMIN" | "AGENCY_ADMIN" | "AGENCY_MEMBER" | "CLIENT";
+export type UserStatus = "active" | "inactive" | "suspended";
 export type AgencyUserRole = "AGENCY_ADMIN" | "AGENCY_MEMBER";
 export type AgencyStatus = "active" | "suspended" | "trial" | "cancelled" | "deleted";
 export type DealStage = "LEAD" | "QUALIFIED" | "PROPOSAL" | "NEGOTIATION" | "CLOSED_WON" | "CLOSED_LOST";
@@ -61,6 +62,8 @@ export const users = pgTable("users", {
   image: text("image"),
   passwordHash: text("password_hash"),
   role: text("role").$type<UserRole>().notNull().default("CLIENT"),
+  userStatus: text("user_status").$type<UserStatus>().notNull().default("active"),
+  lastLoginAt: timestamp("last_login_at", { mode: "date" }),
   createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
 });

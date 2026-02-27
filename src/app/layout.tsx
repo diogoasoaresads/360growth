@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { SessionProvider } from "@/components/shared/session-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { ImpersonationBannerWrapper } from "@/components/impersonation-banner-wrapper";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -27,6 +28,7 @@ export default function RootLayout({
     <html lang="pt-BR" suppressHydrationWarning>
       <body className={`${inter.variable} font-sans antialiased`}>
         <SessionProvider>
+          <ImpersonationBannerWrapper />
           {children}
           <Toaster richColors position="top-right" />
         </SessionProvider>
