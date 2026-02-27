@@ -1,14 +1,9 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import "@fontsource-variable/inter";
 import "./globals.css";
 import { SessionProvider } from "@/components/shared/session-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { ImpersonationBannerWrapper } from "@/components/impersonation-banner-wrapper";
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-});
 
 export const metadata: Metadata = {
   title: {
@@ -26,7 +21,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR" suppressHydrationWarning>
-      <body className={`${inter.variable} font-sans antialiased`}>
+      <body className="font-sans antialiased">
         <SessionProvider>
           <ImpersonationBannerWrapper />
           {children}

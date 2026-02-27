@@ -38,7 +38,7 @@ interface DataTableProps<TData, TValue> {
   totalCount: number;
   isLoading?: boolean;
   searchPlaceholder?: string;
-  facetedFilters?: FacetedFilterConfig<TData>[];
+  facetedFilters?: FacetedFilterConfig[];
   bulkActions?: (selectedRows: TData[]) => React.ReactNode;
   enableRowSelection?: boolean;
   emptyState?: {

@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { agencyUsers, clients, tickets, deals } from "@/lib/db/schema";
-import { eq, and, isNull, count } from "drizzle-orm";
+import { eq, count } from "drizzle-orm";
 import { getAgencyById } from "@/lib/actions/admin/agencies";
 import { KpiCard } from "@/components/admin/kpi-card";
 import {

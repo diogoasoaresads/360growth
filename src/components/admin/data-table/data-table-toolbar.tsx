@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FacetedFilterOption, DataTableFacetedFilter } from "./data-table-faceted-filter";
 
-export interface FacetedFilterConfig<TData> {
+export interface FacetedFilterConfig {
   columnId: string;
   title: string;
   options: FacetedFilterOption[];
@@ -17,7 +17,7 @@ export interface FacetedFilterConfig<TData> {
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
   searchPlaceholder?: string;
-  facetedFilters?: FacetedFilterConfig<TData>[];
+  facetedFilters?: FacetedFilterConfig[];
   bulkActions?: React.ReactNode;
 }
 

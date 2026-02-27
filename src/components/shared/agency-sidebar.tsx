@@ -9,8 +9,6 @@ import { UserNav } from "./user-nav";
 import {
   LayoutDashboard,
   Users,
-  Contact,
-  KanbanSquare,
   TicketIcon,
   BarChart3,
   Settings,

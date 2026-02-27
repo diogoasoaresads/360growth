@@ -1,4 +1,3 @@
-import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { agencyUsers, users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
