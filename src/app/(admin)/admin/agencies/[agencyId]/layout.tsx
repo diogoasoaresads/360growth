@@ -14,8 +14,8 @@ interface Props {
 export async function generateMetadata({ params }: { params: Promise<{ agencyId: string }> }) {
   const { agencyId } = await params;
   const result = await getAgencyById(agencyId);
-  if (!result.success) return { title: "Agência — AgencyHub Admin" };
-  return { title: `${result.data.name} — AgencyHub Admin` };
+  if (!result.success) return { title: "Agência — 360growth Admin" };
+  return { title: `${result.data.name} — 360growth Admin` };
 }
 
 export default async function AgencyDetailLayout({ children, params }: Props) {

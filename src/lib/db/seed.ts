@@ -350,15 +350,15 @@ const TICKET_DATA = [
 // ─── Platform settings defaults ───────────────────────────────────────────────
 
 const DEFAULT_SETTINGS = [
-  { key: "general.platformName", value: JSON.stringify("AgencyHub") },
+  { key: "general.platformName", value: JSON.stringify("360growth") },
   { key: "general.platformUrl", value: JSON.stringify("") },
   { key: "general.primaryColor", value: JSON.stringify("#6366f1") },
   {
     key: "general.description",
     value: JSON.stringify("Plataforma completa para gestão de agências digitais"),
   },
-  { key: "email.senderEmail", value: JSON.stringify("noreply@agencyhub.com") },
-  { key: "email.senderName", value: JSON.stringify("AgencyHub") },
+  { key: "email.senderEmail", value: JSON.stringify("noreply@360growth.com") },
+  { key: "email.senderName", value: JSON.stringify("360growth") },
   { key: "limits.defaultTrialDays", value: JSON.stringify(14) },
   { key: "limits.maxUploadMb", value: JSON.stringify(500) },
   { key: "limits.maxConcurrentSessions", value: JSON.stringify(3) },
@@ -426,7 +426,7 @@ async function seed() {
     .insert(users)
     .values({
       name: "Super Admin",
-      email: "admin@agencyhub.com",
+      email: "admin@360growth.com",
       passwordHash: superAdminPw,
       role: "SUPER_ADMIN",
       userStatus: "active",
@@ -775,7 +775,7 @@ async function seed() {
    • ${DEFAULT_SETTINGS.length} configurações
 
 🔑 Credenciais de acesso:
-   Super Admin  → admin@agencyhub.com       / Admin@123456
+   Super Admin  → admin@360growth.com       / Admin@123456
    Acme Digital → admin@acme-digital.com    / Agency@123456
    WebPro       → admin@webpro.com          / Agency@123456
    StartUp Lab  → admin@startup-lab.com     / Agency@123456

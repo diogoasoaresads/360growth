@@ -8,11 +8,11 @@ export async function sendWelcomeEmail(params: {
   agencyName: string;
 }): Promise<void> {
   await resend.emails.send({
-    from: process.env.EMAIL_FROM ?? "noreply@agencyhub.com",
+    from: process.env.EMAIL_FROM ?? "noreply@360growth.com",
     to: params.to,
-    subject: `Bem-vindo ao AgencyHub, ${params.name}!`,
+    subject: `Bem-vindo ao 360growth, ${params.name}!`,
     html: `
-      <h1>Bem-vindo ao AgencyHub!</h1>
+      <h1>Bem-vindo ao 360growth!</h1>
       <p>Olá ${params.name},</p>
       <p>Sua agência <strong>${params.agencyName}</strong> foi criada com sucesso.</p>
       <p>Acesse sua conta e comece a gerenciar seus clientes.</p>
@@ -27,7 +27,7 @@ export async function sendTicketCreatedEmail(params: {
   ticketId: string;
 }): Promise<void> {
   await resend.emails.send({
-    from: process.env.EMAIL_FROM ?? "noreply@agencyhub.com",
+    from: process.env.EMAIL_FROM ?? "noreply@360growth.com",
     to: params.to,
     subject: `Ticket criado: ${params.ticketSubject}`,
     html: `
@@ -47,7 +47,7 @@ export async function sendTicketReplyEmail(params: {
   reply: string;
 }): Promise<void> {
   await resend.emails.send({
-    from: process.env.EMAIL_FROM ?? "noreply@agencyhub.com",
+    from: process.env.EMAIL_FROM ?? "noreply@360growth.com",
     to: params.to,
     subject: `Nova resposta: ${params.ticketSubject}`,
     html: `

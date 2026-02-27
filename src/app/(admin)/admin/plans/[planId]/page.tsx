@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
-export const metadata = { title: "Editar Plano — AgencyHub Admin" };
+export const metadata = { title: "Editar Plano — 360growth Admin" };
 
 interface Props {
   params: Promise<{ planId: string }>;

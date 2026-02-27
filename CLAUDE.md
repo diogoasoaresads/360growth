@@ -1,8 +1,8 @@
-# AgencyHub - Developer Guide
+# 360growth - Developer Guide
 
 ## Project Overview
 
-AgencyHub is a **multi-tenant SaaS platform** for digital agencies. It provides CRM, client portal, and ticketing system capabilities with a 3-level hierarchical user system.
+360growth is a **multi-tenant SaaS platform** for digital agencies. It provides CRM, client portal, and ticketing system capabilities with a 3-level hierarchical user system.
 
 ## Tech Stack
 
@@ -228,13 +228,13 @@ await db.query.clients.findMany({ where: eq(clients.agencyId, agencyId) })
 
 ```bash
 # Build image locally
-docker build -t agencyhub .
+docker build -t 360growth .
 
 # Run container
 docker run -p 3000:3000 \
   -e DATABASE_URL="..." \
   -e NEXTAUTH_SECRET="..." \
-  agencyhub
+  360growth
 ```
 
 ### GitHub Actions / EasyPanel

@@ -7,8 +7,8 @@ import { ImpersonationBannerWrapper } from "@/components/impersonation-banner-wr
 
 export const metadata: Metadata = {
   title: {
-    default: "AgencyHub",
-    template: "%s | AgencyHub",
+    default: "360growth",
+    template: "%s | 360growth",
   },
   description: "Plataforma SaaS multi-tenant para gestão de agências digitais",
   keywords: ["agência", "CRM", "tickets", "gestão", "SaaS"],

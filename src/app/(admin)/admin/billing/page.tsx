@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/table";
 
 export const metadata: Metadata = {
-  title: "Faturamento — AgencyHub Admin",
+  title: "Faturamento — 360growth Admin",
 };
 
 function formatBrl(value: number): string {

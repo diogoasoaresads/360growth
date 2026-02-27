@@ -1,4 +1,4 @@
-# AgencyHub — Growth360
+# 360growth
 
 Multi-tenant SaaS platform for digital agencies. Built with Next.js 14, Drizzle ORM, PostgreSQL, Redis, and Stripe.
 

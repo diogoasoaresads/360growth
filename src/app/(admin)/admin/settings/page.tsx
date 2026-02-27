@@ -3,7 +3,7 @@ import { getSettings } from "@/lib/actions/admin/settings";
 import { SettingsForm } from "./settings-form";
 
 export const metadata: Metadata = {
-  title: "Configurações — AgencyHub Admin",
+  title: "Configurações — 360growth Admin",
 };
 
 export default async function SettingsPage() {
@@ -13,14 +13,14 @@ export default async function SettingsPage() {
     ? result.data
     : {
         general: {
-          platformName: "AgencyHub",
+          platformName: "360growth",
           platformUrl: "",
           primaryColor: "#6366f1",
           description: "",
         },
         email: {
-          senderEmail: "noreply@agencyhub.com",
-          senderName: "AgencyHub",
+          senderEmail: "noreply@360growth.com",
+          senderName: "360growth",
         },
         limits: {
           defaultTrialDays: 14,
@@ -45,7 +45,7 @@ export default async function SettingsPage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Configurações</h1>
         <p className="text-sm text-muted-foreground">
-          Configurações globais da plataforma AgencyHub.
+          Configurações globais da plataforma 360growth.
         </p>
       </div>
 

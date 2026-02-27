@@ -2,7 +2,7 @@ import { PageHeader } from "@/components/admin/page-header";
 import { UsersDataTable } from "@/components/admin/users/users-data-table";
 import { getUsers } from "@/lib/actions/admin/users";
 
-export const metadata = { title: "Usuários — AgencyHub Admin" };
+export const metadata = { title: "Usuários — 360growth Admin" };
 
 interface Props {
   searchParams: Promise<{

@@ -2,7 +2,8 @@
 
 import { useState, useTransition, Fragment } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Pencil, Trash2, ChevronDown, ChevronRight, Building2 } from "lucide-react";
+import { Plus, Pencil, Trash2, ChevronDown, ChevronRight, Building2, History } from "lucide-react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -172,6 +173,17 @@ export function FlagsTable({ data }: FlagsTableProps) {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          title="Histórico"
+                          asChild
+                        >
+                          <Link href={`/admin/logs?entityType=FEATURE_FLAG&search=${encodeURIComponent(row.key)}`}>
+                            <History className="h-3.5 w-3.5" />
+                          </Link>
+                        </Button>
                         <Button
                           variant="ghost"
                           size="icon"

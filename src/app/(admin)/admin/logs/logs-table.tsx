@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import {
   useReactTable,
@@ -19,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { AuditLogEntry } from "@/lib/actions/admin/logs";
 import { columns } from "./columns";
+import { LogDetailDrawer } from "./log-detail-drawer";
 
 interface LogsTableProps {
   data: AuditLogEntry[];
@@ -40,6 +42,7 @@ export function LogsTable({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const [selectedLog, setSelectedLog] = useState<AuditLogEntry | null>(null);
 
   function updateParam(key: string, value: string) {
     const params = new URLSearchParams(searchParams.toString());
@@ -70,6 +73,8 @@ export function LogsTable({
   const to = Math.min(page * perPage, totalCount);
 
   return (
+    <>
+    <LogDetailDrawer log={selectedLog} onClose={() => setSelectedLog(null)} />
     <div className="space-y-2">
       {/* Table */}
       <div className="rounded-md border">
@@ -89,7 +94,7 @@ export function LogsTable({
               </TableHead>
               <TableHead>Usuário</TableHead>
               <TableHead>Ação</TableHead>
-              <TableHead>Recurso</TableHead>
+              <TableHead>Recurso / Agência</TableHead>
               <TableHead>IP</TableHead>
               <TableHead>Detalhes</TableHead>
             </TableRow>
@@ -103,7 +108,11 @@ export function LogsTable({
               </TableRow>
             ) : (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
+                <TableRow
+                  key={row.id}
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => setSelectedLog(row.original)}
+                >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className="align-top py-3">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -166,5 +175,6 @@ export function LogsTable({
         </div>
       </div>
     </div>
+    </>
   );
 }

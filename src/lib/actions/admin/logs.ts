@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { auditLogs, users } from "@/lib/db/schema";
+import { auditLogs, users, agencies } from "@/lib/db/schema";
 import { auth } from "@/lib/auth";
 import {
   eq,
@@ -31,6 +31,7 @@ export interface AuditLogEntry {
   entityType: string | null;
   entityId: string | null;
   agencyId: string | null;
+  agencyName: string | null;
   ipAddress: string | null;
   userAgent: string | null;
   metadata: Record<string, unknown> | null;
@@ -49,9 +50,10 @@ export interface AuditLogsParams {
   search?: string;
   actions?: string[];
   entityType?: string;
+  agencyId?: string;
+  actorUserId?: string;
   dateFrom?: string;
   dateTo?: string;
-  userId?: string;
   sortOrder?: "asc" | "desc";
 }
 
@@ -73,9 +75,10 @@ export async function getAuditLogs(
       search,
       actions,
       entityType,
+      agencyId,
+      actorUserId,
       dateFrom,
       dateTo,
-      userId,
       sortOrder = "desc",
     } = params;
     const offset = (page - 1) * perPage;
@@ -115,8 +118,12 @@ export async function getAuditLogs(
       conditions.push(eq(auditLogs.entityType, entityType as import("@/lib/db/schema").EntityType));
     }
 
-    if (userId) {
-      conditions.push(eq(auditLogs.userId, userId));
+    if (agencyId) {
+      conditions.push(eq(auditLogs.agencyId, agencyId));
+    }
+
+    if (actorUserId) {
+      conditions.push(eq(auditLogs.userId, actorUserId));
     }
 
     const where = conditions.length > 0 ? and(...conditions) : undefined;
@@ -131,9 +138,11 @@ export async function getAuditLogs(
           userEmail: users.email,
           userImage: users.image,
           userId: users.id,
+          agencyName: agencies.name,
         })
         .from(auditLogs)
         .leftJoin(users, eq(users.id, auditLogs.userId))
+        .leftJoin(agencies, eq(agencies.id, auditLogs.agencyId))
         .where(where)
         .orderBy(orderFn(auditLogs.createdAt))
         .limit(perPage)
@@ -143,6 +152,7 @@ export async function getAuditLogs(
         .select({ total: count() })
         .from(auditLogs)
         .leftJoin(users, eq(users.id, auditLogs.userId))
+        .leftJoin(agencies, eq(agencies.id, auditLogs.agencyId))
         .where(where),
     ]);
 
@@ -152,6 +162,7 @@ export async function getAuditLogs(
       entityType: r.log.entityType ?? null,
       entityId: r.log.entityId ?? null,
       agencyId: r.log.agencyId ?? null,
+      agencyName: r.agencyName ?? null,
       ipAddress: r.log.ipAddress ?? null,
       userAgent: r.log.userAgent ?? null,
       metadata: r.log.metadata as Record<string, unknown> | null,

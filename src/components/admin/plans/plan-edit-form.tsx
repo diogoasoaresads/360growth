@@ -410,7 +410,7 @@ export function PlanEditForm({ plan }: PlanEditFormProps) {
               {
                 name: "featuresConfig.whiteLabel" as const,
                 label: "White-label",
-                description: "Remove a marca AgencyHub da interface.",
+                description: "Remove a marca 360growth da interface.",
               },
               {
                 name: "featuresConfig.advancedReports" as const,
