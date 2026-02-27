@@ -10,12 +10,12 @@ import {
   LayoutDashboard,
   Building2,
   CreditCard,
-  TicketIcon,
+  Ticket,
   Users,
   Settings,
   ChevronRight,
   DollarSign,
-  FileText,
+  ScrollText,
 } from "lucide-react";
 
 const navItems = [
@@ -31,19 +31,19 @@ const navItems = [
     icon: Building2,
   },
   {
-    label: "Usuários",
-    href: "/admin/users",
-    icon: Users,
-  },
-  {
     label: "Planos",
     href: "/admin/plans",
     icon: CreditCard,
   },
   {
+    label: "Usuários",
+    href: "/admin/users",
+    icon: Users,
+  },
+  {
     label: "Tickets",
     href: "/admin/tickets",
-    icon: TicketIcon,
+    icon: Ticket,
   },
   {
     label: "Faturamento",
@@ -51,14 +51,14 @@ const navItems = [
     icon: DollarSign,
   },
   {
-    label: "Logs",
-    href: "/admin/logs",
-    icon: FileText,
-  },
-  {
     label: "Configurações",
     href: "/admin/settings",
     icon: Settings,
+  },
+  {
+    label: "Logs",
+    href: "/admin/logs",
+    icon: ScrollText,
   },
 ];
 
