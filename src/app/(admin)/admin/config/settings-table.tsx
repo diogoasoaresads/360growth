@@ -2,9 +2,9 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Pencil, Trash2, Eye, EyeOff } from "lucide-react";
+import { Plus, Pencil, Trash2, Eye, EyeOff, History } from "lucide-react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -144,6 +144,17 @@ export function SettingsTable({ data }: SettingsTableProps) {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        title="Histórico"
+                        asChild
+                      >
+                        <Link href={`/admin/logs?entityType=PLATFORM_SETTING&search=${encodeURIComponent(row.key)}`}>
+                          <History className="h-3.5 w-3.5" />
+                        </Link>
+                      </Button>
                       <Button
                         variant="ghost"
                         size="icon"

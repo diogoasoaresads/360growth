@@ -73,10 +73,10 @@ export function AgencySidebar() {
       <div className="flex h-16 items-center px-6">
         <Link href="/agency/dashboard" className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-            <span className="text-sm font-bold text-primary-foreground">A</span>
+            <span className="text-sm font-bold text-primary-foreground">3</span>
           </div>
           <div>
-            <p className="text-sm font-bold text-sidebar-foreground">AgencyHub</p>
+            <p className="text-sm font-bold text-sidebar-foreground">360growth</p>
             <p className="text-[10px] text-sidebar-foreground/60 uppercase tracking-wider">
               Agência
             </p>

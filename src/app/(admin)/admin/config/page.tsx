@@ -10,7 +10,7 @@ import { FlagsTable } from "./flags-table";
 import { ConfigAuditLogs } from "./config-audit-logs";
 
 export const metadata: Metadata = {
-  title: "Config Center — AgencyHub Admin",
+  title: "Config Center — 360growth Admin",
 };
 
 interface Props {

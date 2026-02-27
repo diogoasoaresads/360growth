@@ -6,7 +6,7 @@ import { LogsTable } from "./logs-table";
 import { LogsToolbar } from "./logs-toolbar";
 
 export const metadata: Metadata = {
-  title: "Logs de Auditoria — AgencyHub Admin",
+  title: "Logs de Auditoria — 360growth Admin",
 };
 
 interface Props {
@@ -16,6 +16,8 @@ interface Props {
     search?: string;
     categories?: string;
     entityType?: string;
+    agencyId?: string;
+    actorUserId?: string;
     dateFrom?: string;
     dateTo?: string;
     order?: string;
@@ -31,6 +33,8 @@ export default async function LogsPage({ searchParams }: Props) {
     : 25;
   const search = params.search ?? "";
   const entityType = params.entityType ?? "";
+  const agencyId = params.agencyId ?? "";
+  const actorUserId = params.actorUserId ?? "";
   const dateFrom = params.dateFrom ?? "";
   const dateTo = params.dateTo ?? "";
   const sortOrder = params.order === "asc" ? "asc" : "desc";
@@ -53,6 +57,8 @@ export default async function LogsPage({ searchParams }: Props) {
     search,
     actions,
     entityType: entityType || undefined,
+    agencyId: agencyId || undefined,
+    actorUserId: actorUserId || undefined,
     dateFrom,
     dateTo,
     sortOrder,
@@ -81,6 +87,8 @@ export default async function LogsPage({ searchParams }: Props) {
           search={search}
           selectedCategories={selectedCategories}
           entityType={entityType}
+          agencyId={agencyId}
+          actorUserId={actorUserId}
           dateFrom={dateFrom}
           dateTo={dateTo}
         />

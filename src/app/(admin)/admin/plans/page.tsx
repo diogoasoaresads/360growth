@@ -4,7 +4,7 @@ import { PlanCard } from "@/components/admin/plans/plan-card";
 import { EmptyState } from "@/components/admin/empty-state";
 import { CreditCard } from "lucide-react";
 
-export const metadata = { title: "Planos — AgencyHub Admin" };
+export const metadata = { title: "Planos — 360growth Admin" };
 
 export default async function PlansPage() {
   const result = await getPlans();

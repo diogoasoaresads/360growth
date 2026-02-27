@@ -92,7 +92,7 @@ function GeneralForm({ defaults }: { defaults: GeneralSettings }) {
             <FormItem>
               <FormLabel>URL da plataforma</FormLabel>
               <FormControl>
-                <Input placeholder="https://app.agencyhub.com" {...field} value={field.value ?? ""} />
+                <Input placeholder="https://app.360growth.com" {...field} value={field.value ?? ""} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -176,7 +176,7 @@ function EmailForm({ defaults }: { defaults: EmailSettings }) {
             <FormItem>
               <FormLabel>Email do remetente</FormLabel>
               <FormControl>
-                <Input type="email" placeholder="noreply@agencyhub.com" {...field} />
+                <Input type="email" placeholder="noreply@360growth.com" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -189,7 +189,7 @@ function EmailForm({ defaults }: { defaults: EmailSettings }) {
             <FormItem>
               <FormLabel>Nome do remetente</FormLabel>
               <FormControl>
-                <Input placeholder="AgencyHub" {...field} />
+                <Input placeholder="360growth" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

@@ -27,8 +27,8 @@ interface Props {
 export async function generateMetadata({ params }: Props) {
   const { userId } = await params;
   const result = await getUserById(userId);
-  if (!result.success) return { title: "Usuário — AgencyHub Admin" };
-  return { title: `${result.data.name ?? result.data.email} — AgencyHub Admin` };
+  if (!result.success) return { title: "Usuário — 360growth Admin" };
+  return { title: `${result.data.name ?? result.data.email} — 360growth Admin` };
 }
 
 export default async function UserDetailPage({ params }: Props) {

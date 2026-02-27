@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
-export const metadata = { title: "Nova Agência — AgencyHub Admin" };
+export const metadata = { title: "Nova Agência — 360growth Admin" };
 
 export default async function NewAgencyPage() {
   const plansResult = await getPlans();

@@ -30,12 +30,12 @@ async function requireSuperAdmin() {
 
 // Default values for each setting key
 const SETTING_DEFAULTS: Record<string, unknown> = {
-  "general.platformName": "AgencyHub",
+  "general.platformName": "360growth",
   "general.platformUrl": "",
   "general.primaryColor": "#6366f1",
   "general.description": "",
-  "email.senderEmail": "noreply@agencyhub.com",
-  "email.senderName": "AgencyHub",
+  "email.senderEmail": "noreply@360growth.com",
+  "email.senderName": "360growth",
   "limits.defaultTrialDays": 14,
   "limits.maxUploadMb": 500,
   "limits.maxConcurrentSessions": 3,

@@ -5,7 +5,7 @@ import { AgenciesDataTable } from "@/components/admin/agencies/agencies-data-tab
 import { getAgencies } from "@/lib/actions/admin/agencies";
 import { Plus } from "lucide-react";
 
-export const metadata = { title: "Agências — AgencyHub Admin" };
+export const metadata = { title: "Agências — 360growth Admin" };
 
 interface Props {
   searchParams: Promise<{

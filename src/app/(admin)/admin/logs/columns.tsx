@@ -20,6 +20,8 @@ const CATEGORY_CLASS: Record<string, string> = {
   subscription: "bg-amber-100 text-amber-800",
   ticket: "bg-cyan-100 text-cyan-800",
   settings: "bg-gray-100 text-gray-800",
+  platform_setting: "bg-indigo-100 text-indigo-800",
+  feature_flag: "bg-violet-100 text-violet-800",
   auth: "bg-red-100 text-red-800",
 };
 
@@ -121,16 +123,23 @@ export const columns: ColumnDef<AuditLogEntry>[] = [
     id: "resource",
     header: "Recurso",
     cell: ({ row }) => {
-      const { entityType, entityId } = row.original;
-      if (!entityType && !entityId) {
+      const { entityType, entityId, agencyName } = row.original;
+      if (!entityType && !entityId && !agencyName) {
         return <span className="text-xs text-muted-foreground">—</span>;
       }
       return (
-        <div className="text-sm">
-          <span className="text-muted-foreground">{entityType}: </span>
-          <span className="font-mono text-xs">
-            {entityId ? entityId.slice(0, 8).toUpperCase() : "—"}
-          </span>
+        <div className="text-sm space-y-0.5">
+          {(entityType || entityId) && (
+            <div>
+              <span className="text-muted-foreground">{entityType}: </span>
+              <span className="font-mono text-xs">
+                {entityId ?? "—"}
+              </span>
+            </div>
+          )}
+          {agencyName && (
+            <p className="text-xs text-muted-foreground">{agencyName}</p>
+          )}
         </div>
       );
     },

@@ -42,6 +42,8 @@ interface LogsToolbarProps {
   search: string;
   selectedCategories: string[];
   entityType: string;
+  agencyId: string;
+  actorUserId: string;
   dateFrom: string;
   dateTo: string;
 }
@@ -50,6 +52,8 @@ export function LogsToolbar({
   search,
   selectedCategories,
   entityType,
+  agencyId,
+  actorUserId,
   dateFrom,
   dateTo,
 }: LogsToolbarProps) {
@@ -109,7 +113,7 @@ export function LogsToolbar({
     updateParam({ categories: next.length > 0 ? next : null });
   }
 
-  const hasFilters = search || selectedCategories.length > 0 || entityType || dateFrom || dateTo;
+  const hasFilters = search || selectedCategories.length > 0 || entityType || agencyId || actorUserId || dateFrom || dateTo;
 
   return (
     <div className="space-y-3">
@@ -198,6 +202,44 @@ export function LogsToolbar({
           </DropdownMenuContent>
         </DropdownMenu>
 
+        {/* Agency ID filter */}
+        <div className="relative">
+          <Input
+            placeholder="ID da agência..."
+            defaultValue={agencyId}
+            className="w-44 text-sm"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                updateParam({ agencyId: (e.target as HTMLInputElement).value });
+              }
+            }}
+            onBlur={(e) => {
+              if (e.target.value !== agencyId) {
+                updateParam({ agencyId: e.target.value });
+              }
+            }}
+          />
+        </div>
+
+        {/* Actor user ID filter */}
+        <div className="relative">
+          <Input
+            placeholder="ID do usuário (ator)..."
+            defaultValue={actorUserId}
+            className="w-48 text-sm"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                updateParam({ actorUserId: (e.target as HTMLInputElement).value });
+              }
+            }}
+            onBlur={(e) => {
+              if (e.target.value !== actorUserId) {
+                updateParam({ actorUserId: e.target.value });
+              }
+            }}
+          />
+        </div>
+
         {/* Date presets */}
         <div className="flex gap-1">
           {(["today", "7d", "30d", "month"] as const).map((p) => {
@@ -239,7 +281,7 @@ export function LogsToolbar({
             size="sm"
             className="gap-1 text-muted-foreground"
             onClick={() =>
-              updateParam({ search: null, categories: null, entityType: null, dateFrom: null, dateTo: null })
+              updateParam({ search: null, categories: null, entityType: null, agencyId: null, actorUserId: null, dateFrom: null, dateTo: null })
             }
           >
             <X className="h-3 w-3" />
