@@ -28,7 +28,7 @@ export default auth((req) => {
   const { role } = session.user;
 
   // SUPER_ADMIN routes
-  if (pathname.startsWith("/super-admin")) {
+  if (pathname.startsWith("/super-admin") || pathname.startsWith("/admin")) {
     if (role !== "SUPER_ADMIN") {
       return NextResponse.redirect(new URL("/unauthorized", req.url));
     }
