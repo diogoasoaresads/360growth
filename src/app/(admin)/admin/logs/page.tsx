@@ -15,6 +15,7 @@ interface Props {
     perPage?: string;
     search?: string;
     categories?: string;
+    entityType?: string;
     dateFrom?: string;
     dateTo?: string;
     order?: string;
@@ -29,6 +30,7 @@ export default async function LogsPage({ searchParams }: Props) {
     ? Number(params.perPage ?? 25)
     : 25;
   const search = params.search ?? "";
+  const entityType = params.entityType ?? "";
   const dateFrom = params.dateFrom ?? "";
   const dateTo = params.dateTo ?? "";
   const sortOrder = params.order === "asc" ? "asc" : "desc";
@@ -50,6 +52,7 @@ export default async function LogsPage({ searchParams }: Props) {
     perPage,
     search,
     actions,
+    entityType: entityType || undefined,
     dateFrom,
     dateTo,
     sortOrder,
@@ -77,6 +80,7 @@ export default async function LogsPage({ searchParams }: Props) {
         <LogsToolbar
           search={search}
           selectedCategories={selectedCategories}
+          entityType={entityType}
           dateFrom={dateFrom}
           dateTo={dateTo}
         />
