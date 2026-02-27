@@ -20,14 +20,22 @@ COPY . .
 # Disable Next.js telemetry
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Build args for public env vars (injected at build time)
+# Build args (public)
 ARG NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 ARG NEXT_PUBLIC_APP_URL
 
 ENV NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=$NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
 
+# Database (needed for migration during build)
+ARG DATABASE_URL
+ENV DATABASE_URL=$DATABASE_URL
+
+# Build Next.js
 RUN npm run build
+
+# Run database migrations (Drizzle)
+RUN npm run db:migrate
 
 # =============================================================================
 # Stage 3: Runner
