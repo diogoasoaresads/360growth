@@ -16,6 +16,7 @@ import {
   ChevronRight,
   DollarSign,
   ScrollText,
+  SlidersHorizontal,
 } from "lucide-react";
 
 const navItems = [
@@ -54,6 +55,11 @@ const navItems = [
     label: "Configurações",
     href: "/admin/settings",
     icon: Settings,
+  },
+  {
+    label: "Config Center",
+    href: "/admin/config",
+    icon: SlidersHorizontal,
   },
   {
     label: "Logs",

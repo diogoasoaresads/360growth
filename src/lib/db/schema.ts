@@ -8,6 +8,7 @@ import {
   primaryKey,
   index,
   json,
+  unique,
 } from "drizzle-orm/pg-core";
 import type { AdapterAccountType } from "next-auth/adapters";
 
@@ -20,7 +21,8 @@ export type AgencyUserRole = "AGENCY_ADMIN" | "AGENCY_MEMBER";
 export type AgencyStatus = "active" | "suspended" | "trial" | "cancelled" | "deleted";
 export type DealStage = "LEAD" | "QUALIFIED" | "PROPOSAL" | "NEGOTIATION" | "CLOSED_WON" | "CLOSED_LOST";
 export type ActivityType = "NOTE" | "CALL" | "EMAIL" | "MEETING" | "TASK" | "STATUS_CHANGE";
-export type EntityType = "CLIENT" | "DEAL" | "TICKET" | "CONTACT" | "AGENCY" | "PLAN" | "USER";
+export type EntityType = "CLIENT" | "DEAL" | "TICKET" | "CONTACT" | "AGENCY" | "PLAN" | "USER" | "PLATFORM_SETTING" | "FEATURE_FLAG";
+export type SettingType = "string" | "number" | "boolean" | "json";
 export type TicketStatus = "OPEN" | "IN_PROGRESS" | "WAITING" | "RESOLVED" | "CLOSED";
 export type TicketPriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
 export type TicketType = "SUPPORT" | "FEATURE_REQUEST" | "BUG" | "BILLING" | "OTHER";
@@ -323,9 +325,53 @@ export const auditLogs = pgTable(
 export const platformSettings = pgTable("platform_settings", {
   key: text("key").primaryKey(),
   value: text("value").notNull(),
+  type: text("type").$type<SettingType>().notNull().default("string"),
+  description: text("description"),
+  isSecret: boolean("is_secret").notNull().default(false),
   updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
   updatedBy: text("updated_by").references(() => users.id, { onDelete: "set null" }),
 });
+
+// ============================================================
+// FEATURE FLAGS
+// ============================================================
+export const featureFlags = pgTable("feature_flags", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  key: text("key").notNull().unique(),
+  name: text("name").notNull(),
+  description: text("description"),
+  enabled: boolean("enabled").notNull().default(false),
+  rolloutPercent: integer("rollout_percent").notNull().default(100),
+  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
+  updatedBy: text("updated_by").references(() => users.id, { onDelete: "set null" }),
+});
+
+export const agencyFeatureFlags = pgTable(
+  "agency_feature_flags",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    agencyId: text("agency_id")
+      .notNull()
+      .references(() => agencies.id, { onDelete: "cascade" }),
+    flagId: text("flag_id")
+      .notNull()
+      .references(() => featureFlags.id, { onDelete: "cascade" }),
+    enabled: boolean("enabled").notNull().default(false),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
+    updatedBy: text("updated_by").references(() => users.id, { onDelete: "set null" }),
+  },
+  (t) => [
+    index("agency_feature_flags_agency_id_idx").on(t.agencyId),
+    index("agency_feature_flags_flag_id_idx").on(t.flagId),
+    unique("agency_feature_flags_unique").on(t.agencyId, t.flagId),
+  ]
+);
 
 // ============================================================
 // TICKETS
@@ -401,6 +447,9 @@ export type TicketMessage = typeof ticketMessages.$inferSelect;
 export type Plan = typeof plans.$inferSelect;
 export type NewPlan = typeof plans.$inferInsert;
 export type PlatformSetting = typeof platformSettings.$inferSelect;
+export type FeatureFlag = typeof featureFlags.$inferSelect;
+export type NewFeatureFlag = typeof featureFlags.$inferInsert;
+export type AgencyFeatureFlag = typeof agencyFeatureFlags.$inferSelect;
 
 // ============================================================
 // HELPERS

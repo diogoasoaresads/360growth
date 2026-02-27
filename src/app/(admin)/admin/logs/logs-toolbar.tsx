@@ -14,6 +14,18 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ACTION_CATEGORIES, type ActionCategory } from "@/lib/log-utils";
 
+const ENTITY_TYPES = [
+  { value: "CLIENT", label: "Cliente" },
+  { value: "DEAL", label: "Deal" },
+  { value: "TICKET", label: "Ticket" },
+  { value: "CONTACT", label: "Contato" },
+  { value: "AGENCY", label: "Agência" },
+  { value: "PLAN", label: "Plano" },
+  { value: "USER", label: "Usuário" },
+  { value: "PLATFORM_SETTING", label: "Config. Plataforma" },
+  { value: "FEATURE_FLAG", label: "Feature Flag" },
+] as const;
+
 const CATEGORY_BADGE_CLASSES: Record<string, string> = {
   agency: "bg-blue-100 text-blue-800",
   user: "bg-green-100 text-green-800",
@@ -21,12 +33,15 @@ const CATEGORY_BADGE_CLASSES: Record<string, string> = {
   subscription: "bg-amber-100 text-amber-800",
   ticket: "bg-cyan-100 text-cyan-800",
   settings: "bg-gray-100 text-gray-800",
+  platform_setting: "bg-indigo-100 text-indigo-800",
+  feature_flag: "bg-violet-100 text-violet-800",
   auth: "bg-red-100 text-red-800",
 };
 
 interface LogsToolbarProps {
   search: string;
   selectedCategories: string[];
+  entityType: string;
   dateFrom: string;
   dateTo: string;
 }
@@ -34,6 +49,7 @@ interface LogsToolbarProps {
 export function LogsToolbar({
   search,
   selectedCategories,
+  entityType,
   dateFrom,
   dateTo,
 }: LogsToolbarProps) {
@@ -93,7 +109,7 @@ export function LogsToolbar({
     updateParam({ categories: next.length > 0 ? next : null });
   }
 
-  const hasFilters = search || selectedCategories.length > 0 || dateFrom || dateTo;
+  const hasFilters = search || selectedCategories.length > 0 || entityType || dateFrom || dateTo;
 
   return (
     <div className="space-y-3">
@@ -118,6 +134,37 @@ export function LogsToolbar({
             }}
           />
         </div>
+
+        {/* Entity type filter */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm" className="gap-1">
+              Tipo de entidade
+              {entityType && (
+                <Badge variant="secondary" className="ml-1 h-4 px-1 text-xs">1</Badge>
+              )}
+              <ChevronDown className="h-3 w-3" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-48">
+            {ENTITY_TYPES.map((et) => {
+              const checked = entityType === et.value;
+              return (
+                <DropdownMenuItem
+                  key={et.value}
+                  className="flex items-center gap-2 cursor-pointer"
+                  onSelect={(e) => {
+                    e.preventDefault();
+                    updateParam({ entityType: checked ? null : et.value });
+                  }}
+                >
+                  <Check className={`h-3 w-3 ${checked ? "opacity-100" : "opacity-0"}`} />
+                  <span className="text-sm">{et.label}</span>
+                </DropdownMenuItem>
+              );
+            })}
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         {/* Category filter */}
         <DropdownMenu>
@@ -192,7 +239,7 @@ export function LogsToolbar({
             size="sm"
             className="gap-1 text-muted-foreground"
             onClick={() =>
-              updateParam({ search: null, categories: null, dateFrom: null, dateTo: null })
+              updateParam({ search: null, categories: null, entityType: null, dateFrom: null, dateTo: null })
             }
           >
             <X className="h-3 w-3" />

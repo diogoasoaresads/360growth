@@ -48,6 +48,7 @@ export interface AuditLogsParams {
   perPage?: number;
   search?: string;
   actions?: string[];
+  entityType?: string;
   dateFrom?: string;
   dateTo?: string;
   userId?: string;
@@ -71,6 +72,7 @@ export async function getAuditLogs(
       perPage = 25,
       search,
       actions,
+      entityType,
       dateFrom,
       dateTo,
       userId,
@@ -107,6 +109,10 @@ export async function getAuditLogs(
         to.setHours(23, 59, 59, 999);
         conditions.push(lte(auditLogs.createdAt, to));
       }
+    }
+
+    if (entityType) {
+      conditions.push(eq(auditLogs.entityType, entityType as import("@/lib/db/schema").EntityType));
     }
 
     if (userId) {

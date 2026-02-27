@@ -54,6 +54,25 @@ export const ACTION_CATEGORIES = {
     color: "gray" as const,
     actions: ["settings.updated"],
   },
+  platform_setting: {
+    label: "Config. Plataforma",
+    color: "indigo" as const,
+    actions: [
+      "platform_setting.created",
+      "platform_setting.updated",
+      "platform_setting.deleted",
+    ],
+  },
+  feature_flag: {
+    label: "Feature Flag",
+    color: "violet" as const,
+    actions: [
+      "feature_flag.created",
+      "feature_flag.updated",
+      "feature_flag.deleted",
+      "feature_flag.override_set",
+    ],
+  },
   auth: {
     label: "Auth",
     color: "red" as const,
