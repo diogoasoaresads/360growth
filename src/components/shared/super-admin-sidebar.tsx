@@ -24,7 +24,7 @@ const navItems = [
   },
   {
     label: "Agências",
-    href: "/super-admin/agencies",
+    href: "/admin/agencies",
     icon: Building2,
   },
   {
@@ -34,7 +34,7 @@ const navItems = [
   },
   {
     label: "Planos",
-    href: "/super-admin/plans",
+    href: "/admin/plans",
     icon: CreditCard,
   },
   {

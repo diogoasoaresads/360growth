@@ -9,6 +9,7 @@ import {
   contacts,
   deals,
   activities,
+  auditLogs,
   tickets,
   ticketMessages,
   plans,
@@ -24,6 +25,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   ticketMessages: many(ticketMessages),
   responsibleDeals: many(deals),
   activities: many(activities),
+  auditLogs: many(auditLogs),
 }));
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
@@ -45,6 +47,7 @@ export const agenciesRelations = relations(agencies, ({ one, many }) => ({
   deals: many(deals),
   tickets: many(tickets),
   activities: many(activities),
+  auditLogs: many(auditLogs),
 }));
 
 export const agencyUsersRelations = relations(agencyUsers, ({ one }) => ({
@@ -129,6 +132,17 @@ export const ticketMessagesRelations = relations(ticketMessages, ({ one }) => ({
   }),
   user: one(users, {
     fields: [ticketMessages.userId],
+    references: [users.id],
+  }),
+}));
+
+export const auditLogsRelations = relations(auditLogs, ({ one }) => ({
+  agency: one(agencies, {
+    fields: [auditLogs.agencyId],
+    references: [agencies.id],
+  }),
+  user: one(users, {
+    fields: [auditLogs.userId],
     references: [users.id],
   }),
 }));
