@@ -19,7 +19,7 @@ import {
 const navItems = [
   {
     label: "Dashboard",
-    href: "/super-admin/dashboard",
+    href: "/admin",
     icon: LayoutDashboard,
   },
   {
@@ -39,7 +39,7 @@ const navItems = [
   },
   {
     label: "Tickets",
-    href: "/super-admin/tickets",
+    href: "/admin/tickets",
     icon: TicketIcon,
   },
   {
@@ -56,7 +56,7 @@ export function SuperAdminSidebar() {
     <aside className="flex h-screen w-64 flex-col bg-sidebar border-r border-sidebar-border">
       {/* Logo */}
       <div className="flex h-16 items-center px-6">
-        <Link href="/super-admin/dashboard" className="flex items-center gap-2">
+        <Link href="/admin" className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
             <span className="text-sm font-bold text-primary-foreground">A</span>
           </div>
