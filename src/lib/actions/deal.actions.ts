@@ -18,7 +18,7 @@ export async function createDeal(input: CreateDealInput) {
   const parsed = createDealSchema.safeParse(input);
   if (!parsed.success) throw new Error("Dados inválidos");
 
-  await validatePlanLimit({ agencyId, actorUserId: session.user.id, resourceType: "deals" });
+  await validatePlanLimit({ agencyId, actorUserId: session.user.id, resourceType: "deals", context: { action: "createDeal" } });
 
   const [deal] = await db
     .insert(deals)

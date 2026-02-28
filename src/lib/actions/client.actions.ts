@@ -18,7 +18,7 @@ export async function createClient(input: CreateClientInput) {
   const parsed = createClientSchema.safeParse(input);
   if (!parsed.success) throw new Error("Dados inválidos");
 
-  await validatePlanLimit({ agencyId, actorUserId: session.user.id, resourceType: "clients" });
+  await validatePlanLimit({ agencyId, actorUserId: session.user.id, resourceType: "clients", context: { action: "createClient" } });
 
   const [client] = await db
     .insert(clients)

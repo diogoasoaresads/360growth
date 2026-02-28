@@ -26,7 +26,7 @@ export async function createTicket(input: CreateTicketInput) {
   const parsed = createTicketSchema.safeParse(input);
   if (!parsed.success) throw new Error("Dados inválidos");
 
-  await validatePlanLimit({ agencyId, actorUserId: session.user.id, resourceType: "tickets" });
+  await validatePlanLimit({ agencyId, actorUserId: session.user.id, resourceType: "tickets", context: { action: "createTicket" } });
 
   const { message, ...ticketData } = parsed.data;
 

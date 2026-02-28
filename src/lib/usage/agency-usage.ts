@@ -72,7 +72,7 @@ export async function validatePlanLimit({
   agencyId: string;
   actorUserId?: string;
   resourceType: LimitResourceType;
-  context?: string;
+  context?: Record<string, unknown>;
 }): Promise<void> {
   const [agency] = await db
     .select({ planId: agencies.planId, maxMembers: agencies.maxMembers, maxClients: agencies.maxClients })
@@ -116,7 +116,7 @@ export async function validatePlanLimit({
       userId: actorUserId,
       action: "limit_blocked",
       agencyId,
-      details: { resourceType, current, limit, context },
+      details: { resourceType, limit, usage: current, agencyId, actorUserId, context },
     });
   }
 
