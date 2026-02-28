@@ -15,7 +15,7 @@ import type {
   UpdateTicketInput,
   AddTicketMessageInput,
 } from "@/lib/validations/ticket";
-import { validatePlanLimit } from "@/lib/plan-limits";
+import { validatePlanLimit } from "@/lib/usage/agency-usage";
 import { getActiveAgencyIdOrThrow } from "@/lib/active-context";
 
 export async function createTicket(input: CreateTicketInput) {
@@ -26,8 +26,7 @@ export async function createTicket(input: CreateTicketInput) {
   const parsed = createTicketSchema.safeParse(input);
   if (!parsed.success) throw new Error("Dados inválidos");
 
-  const check = await validatePlanLimit(agencyId, "tickets", session.user.id);
-  if (!check.allowed) throw new Error(check.error);
+  await validatePlanLimit({ agencyId, actorUserId: session.user.id, resourceType: "tickets" });
 
   const { message, ...ticketData } = parsed.data;
 
