@@ -1,8 +1,8 @@
 /** Incremental build identifier — bump on every release. */
-export const BUILD_ID = "0013";
+export const BUILD_ID = "0014";
 
 /** Timestamp of the last release (YYYY-MM-DD HH:mm). */
-export const UPDATED_AT = "2026-02-28 15:00";
+export const UPDATED_AT = "2026-02-28 16:30";
 
 /** Timezone used for UPDATED_AT. */
 export const UPDATED_TZ = "America/Sao_Paulo";
@@ -19,6 +19,15 @@ export interface ChangelogEntry {
  * Maintain at minimum the last 10 entries.
  */
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    id: "0014",
+    at: "2026-02-28 16:30",
+    lines: [
+      "Página de logs operacionais por agência: timeline filtrada por ação, período e busca",
+      "Paginação (50 por página), modal com JSON do payload e índice composto em audit_logs",
+      "Tab Logs adicionada ao painel de agência; acesso restrito a SUPER_ADMIN",
+    ],
+  },
   {
     id: "0013",
     at: "2026-02-28 15:00",
