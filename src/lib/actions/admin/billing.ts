@@ -55,7 +55,7 @@ export async function getBillingMetrics(): Promise<ActionResult<BillingMetrics>>
         .select({ planPrice: plans.priceMonthly })
         .from(agencies)
         .leftJoin(plans, eq(agencies.planId, plans.id))
-        .where(eq(agencies.subscriptionStatus, "active")),
+        .where(eq(agencies.billingStatus, "active")),
 
       db
         .select({ total: count() })
@@ -99,11 +99,11 @@ export async function getRecentTransactions(
         planName: plans.name,
         planPrice: plans.priceMonthly,
         createdAt: agencies.createdAt,
-        subscriptionStatus: agencies.subscriptionStatus,
+        billingStatus: agencies.billingStatus,
       })
       .from(agencies)
       .leftJoin(plans, eq(agencies.planId, plans.id))
-      .where(and(eq(agencies.subscriptionStatus, "active")))
+      .where(and(eq(agencies.billingStatus, "active")))
       .orderBy(sql`${agencies.createdAt} DESC`)
       .limit(limit);
 
@@ -144,7 +144,7 @@ export async function getMonthlyRevenue(
       .leftJoin(plans, eq(agencies.planId, plans.id))
       .where(
         and(
-          eq(agencies.subscriptionStatus, "active"),
+          eq(agencies.billingStatus, "active"),
           gte(agencies.createdAt, fromDate)
         )
       )

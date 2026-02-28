@@ -150,9 +150,9 @@ export default async function AgencyOverviewPage({ params }: Props) {
                   <span>{agency.maxMembers} membros</span>
                   <span>{agency.maxClients} clientes</span>
                 </div>
-                {agency.stripeSubscriptionId && (
+                {agency.asaasSubscriptionId && (
                   <p className="text-xs text-muted-foreground font-mono mt-2">
-                    Sub: {agency.stripeSubscriptionId}
+                    Sub: {agency.asaasSubscriptionId}
                   </p>
                 )}
               </div>
