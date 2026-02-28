@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { PortalSidebar } from "@/components/shared/portal-sidebar";
 import { db } from "@/lib/db";
-import { clients, agencies } from "@/lib/db/schema";
+import { clients, agencies, userContexts } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 
 export default async function PortalLayout({
@@ -12,7 +12,36 @@ export default async function PortalLayout({
 }) {
   const session = await auth();
 
-  if (!session || session.user.role !== "CLIENT") {
+  if (!session) {
+    redirect("/login");
+  }
+
+  const { role } = session.user;
+
+  // SUPER_ADMIN in client-mode: validate scope=client + clientId from user_contexts
+  if (role === "SUPER_ADMIN") {
+    const [ctx] = await db
+      .select({
+        activeScope: userContexts.activeScope,
+        activeClientId: userContexts.activeClientId,
+      })
+      .from(userContexts)
+      .where(eq(userContexts.userId, session.user.id))
+      .limit(1);
+
+    if (ctx?.activeScope !== "client" || !ctx?.activeClientId) {
+      redirect("/admin");
+    }
+
+    return (
+      <div className="flex h-screen overflow-hidden">
+        <PortalSidebar />
+        <main className="flex-1 overflow-y-auto bg-background">{children}</main>
+      </div>
+    );
+  }
+
+  if (role !== "CLIENT") {
     redirect("/login");
   }
 

@@ -43,7 +43,12 @@ export type AuditAction =
   | "auth.logout"
   | "auth.failed"
   | "auth.impersonation_start"
-  | "auth.impersonation_end";
+  | "auth.impersonation_end"
+  | "client_portal_access_created"
+  | "client_portal_password_reset"
+  | "client_portal_access_revoked"
+  | "stripe_webhook_received"
+  | "subscription_created";
 
 export async function createAuditLog(params: {
   userId: string;

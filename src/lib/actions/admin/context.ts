@@ -14,7 +14,8 @@ import {
 
 export async function setActiveContext(
   scope: ActiveScope,
-  agencyId?: string
+  agencyId?: string | null,
+  clientId?: string | null
 ): Promise<void> {
   const session = await auth();
   if (!session || session.user.role !== "SUPER_ADMIN") {
@@ -30,7 +31,8 @@ export async function setActiveContext(
     if (!agency) throw new Error("Agência não encontrada ou foi removida");
   }
 
-  const resolvedAgencyId = scope === "agency" ? agencyId! : null;
+  const resolvedAgencyId = scope === "agency" ? (agencyId ?? null) : null;
+  const resolvedClientId = scope === "client" ? (clientId ?? null) : null;
 
   await db
     .insert(userContexts)
@@ -38,6 +40,7 @@ export async function setActiveContext(
       userId: session.user.id,
       activeScope: scope,
       activeAgencyId: resolvedAgencyId,
+      activeClientId: resolvedClientId,
       updatedAt: new Date(),
     })
     .onConflictDoUpdate({
@@ -45,6 +48,7 @@ export async function setActiveContext(
       set: {
         activeScope: scope,
         activeAgencyId: resolvedAgencyId,
+        activeClientId: resolvedClientId,
         updatedAt: new Date(),
       },
     });
