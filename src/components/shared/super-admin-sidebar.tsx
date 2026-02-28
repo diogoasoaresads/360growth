@@ -19,6 +19,7 @@ import {
   SlidersHorizontal,
   BarChart3,
   Mail,
+  Activity,
 } from "lucide-react";
 
 const adminNavItems = [
@@ -32,6 +33,7 @@ const adminNavItems = [
   { label: "Config Center",  href: "/admin/config",    icon: SlidersHorizontal },
   { label: "Templates",      href: "/admin/templates", icon: Mail },
   { label: "Logs",           href: "/admin/logs",      icon: ScrollText },
+  { label: "Health",         href: "/admin/health",    icon: Activity },
 ];
 
 const agencyNavItems = [

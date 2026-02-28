@@ -1,8 +1,8 @@
 /** Incremental build identifier — bump on every release. */
-export const BUILD_ID = "0014";
+export const BUILD_ID = "0015";
 
 /** Timestamp of the last release (YYYY-MM-DD HH:mm). */
-export const UPDATED_AT = "2026-02-28 16:30";
+export const UPDATED_AT = "2026-02-28 17:30";
 
 /** Timezone used for UPDATED_AT. */
 export const UPDATED_TZ = "America/Sao_Paulo";
@@ -19,6 +19,15 @@ export interface ChangelogEntry {
  * Maintain at minimum the last 10 entries.
  */
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    id: "0015",
+    at: "2026-02-28 17:30",
+    lines: [
+      "Painel System Health: checks de DB (latência), migrations, Resend, Stripe e erros recentes",
+      "Cards com status visual (verde/vermelho/cinza) e dados em tempo real da plataforma",
+      "Acesso restrito a SUPER_ADMIN; link Health adicionado ao sidebar do admin",
+    ],
+  },
   {
     id: "0014",
     at: "2026-02-28 16:30",
