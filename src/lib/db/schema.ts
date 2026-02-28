@@ -20,6 +20,7 @@ export type UserStatus = "active" | "inactive" | "suspended";
 export type AgencyUserRole = "AGENCY_ADMIN" | "AGENCY_MEMBER";
 export type TemplateScope = "platform" | "agency";
 export type AgencyStatus = "active" | "suspended" | "trial" | "cancelled" | "deleted" | "blocked" | "past_due";
+export type BillingStatus = "active" | "trial" | "past_due" | "canceled";
 export type ActiveScope = "platform" | "agency" | "client";
 export type DealStage = "LEAD" | "QUALIFIED" | "PROPOSAL" | "NEGOTIATION" | "CLOSED_WON" | "CLOSED_LOST";
 export type ActivityType = "NOTE" | "CALL" | "EMAIL" | "MEETING" | "TASK" | "STATUS_CHANGE";
@@ -162,6 +163,7 @@ export const agencies = pgTable("agencies", {
   stripeCustomerId: text("stripe_customer_id"),
   stripeSubscriptionId: text("stripe_subscription_id"),
   subscriptionStatus: text("subscription_status").default("inactive"),
+  billingStatus: text("billing_status").$type<BillingStatus>().notNull().default("trial"),
   trialEndsAt: timestamp("trial_ends_at", { mode: "date" }),
   active: boolean("active").notNull().default(true),
   agencyStatus: text("agency_status").$type<AgencyStatus>().notNull().default("trial"),

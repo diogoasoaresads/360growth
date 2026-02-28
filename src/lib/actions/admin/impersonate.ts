@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth";
 import { cookies } from "next/headers";
 import { encode } from "@auth/core/jwt";
 import { db } from "@/lib/db";
-import { users, agencyUsers, agencies, auditLogs } from "@/lib/db/schema";
+import { users, agencyUsers, agencies, clients, userContexts, auditLogs } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import type { ActionResult } from "@/lib/types";
 import { redirect } from "next/navigation";
@@ -41,17 +41,67 @@ export async function impersonateUser(
     return { success: false, error: "Não é possível impersonar um Super Admin" };
   }
 
-  // Get target user's agency + name
-  const [agencyRow] = await db
-    .select({
-      agencyId: agencyUsers.agencyId,
-      role: agencyUsers.role,
-      agencyName: agencies.name,
-    })
-    .from(agencyUsers)
-    .leftJoin(agencies, eq(agencies.id, agencyUsers.agencyId))
-    .where(eq(agencyUsers.userId, targetUserId))
-    .limit(1);
+  let redirectTo = "/agency/dashboard";
+  let agencyId: string | null = null;
+  let agencyName: string | null = null;
+  let agencyRole: string | null = null;
+  let clientId: string | null = null;
+
+  if (targetUser.role === "CLIENT") {
+    // Verify the CLIENT user has a linked client record
+    const [clientRecord] = await db
+      .select({ id: clients.id, agencyId: clients.agencyId })
+      .from(clients)
+      .where(eq(clients.userId, targetUserId))
+      .limit(1);
+
+    if (!clientRecord) {
+      return {
+        success: false,
+        error: "Usuário CLIENT sem client vinculado. Crie o acesso ao portal pelo CRM.",
+      };
+    }
+
+    clientId = clientRecord.id;
+    agencyId = clientRecord.agencyId;
+    redirectTo = "/portal/dashboard";
+
+    // Also update SUPER_ADMIN's user_contexts so direct portal access works
+    await db
+      .insert(userContexts)
+      .values({
+        userId: session.user.id,
+        activeScope: "client",
+        activeAgencyId: agencyId,
+        activeClientId: clientId,
+        updatedAt: new Date(),
+      })
+      .onConflictDoUpdate({
+        target: userContexts.userId,
+        set: {
+          activeScope: "client",
+          activeAgencyId: agencyId,
+          activeClientId: clientId,
+          updatedAt: new Date(),
+        },
+      });
+  } else {
+    // AGENCY_ADMIN / AGENCY_MEMBER: look up agency
+    const [agencyRow] = await db
+      .select({
+        agencyId: agencyUsers.agencyId,
+        role: agencyUsers.role,
+        agencyName: agencies.name,
+      })
+      .from(agencyUsers)
+      .leftJoin(agencies, eq(agencies.id, agencyUsers.agencyId))
+      .where(eq(agencyUsers.userId, targetUserId))
+      .limit(1);
+
+    agencyId = agencyRow?.agencyId ?? null;
+    agencyName = agencyRow?.agencyName ?? null;
+    agencyRole = agencyRow?.role ?? null;
+  }
 
   const cookieStore = await cookies();
   const originalToken = cookieStore.get(SESSION_COOKIE)?.value;
@@ -69,9 +119,9 @@ export async function impersonateUser(
       name: targetUser.name,
       image: targetUser.image,
       role: targetUser.role,
-      agencyId: agencyRow?.agencyId ?? null,
-      agencyRole: agencyRow?.role ?? null,
-      agencyName: agencyRow?.agencyName ?? null,
+      agencyId,
+      agencyRole,
+      agencyName,
       isImpersonating: true,
       originalAdminId: session.user.id,
       iat: now,
@@ -103,7 +153,7 @@ export async function impersonateUser(
   // Audit log
   await db.insert(auditLogs).values({
     userId: session.user.id,
-    agencyId: agencyRow?.agencyId ?? null,
+    agencyId,
     action: "user.impersonated",
     entityType: "USER",
     entityId: targetUserId,
@@ -111,11 +161,10 @@ export async function impersonateUser(
       targetEmail: targetUser.email,
       targetRole: targetUser.role,
       adminId: session.user.id,
+      clientId,
+      scope: targetUser.role === "CLIENT" ? "client" : "agency",
     },
   });
-
-  const redirectTo =
-    targetUser.role === "CLIENT" ? "/portal/dashboard" : "/agency/dashboard";
 
   return { success: true, data: { redirectTo } };
 }

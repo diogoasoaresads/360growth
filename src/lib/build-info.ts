@@ -1,8 +1,8 @@
 /** Incremental build identifier — bump on every release. */
-export const BUILD_ID = "0016";
+export const BUILD_ID = "0017";
 
 /** Timestamp of the last release (YYYY-MM-DD HH:mm). */
-export const UPDATED_AT = "2026-02-28 19:00";
+export const UPDATED_AT = "2026-02-28 23:30";
 
 /** Timezone used for UPDATED_AT. */
 export const UPDATED_TZ = "America/Sao_Paulo";
@@ -19,6 +19,15 @@ export interface ChangelogEntry {
  * Maintain at minimum the last 10 entries.
  */
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    id: "0017",
+    at: "2026-02-28 23:30",
+    lines: [
+      "Pacote QA: troca de contexto do PO sem relogin — middleware refatorado, cookie de escopo removido do guard",
+      "CRM: página de detalhe do cliente com seção 'Acesso ao Portal' (criar, resetar senha, revogar)",
+      "Impersonation suporta CLIENT: verifica vínculo, atualiza user_contexts e redireciona para /portal",
+    ],
+  },
   {
     id: "0016",
     at: "2026-02-28 19:00",
