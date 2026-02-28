@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { PortalSidebar } from "@/components/shared/portal-sidebar";
 import { db } from "@/lib/db";
-import { agencies } from "@/lib/db/schema";
+import { clients, agencies } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 
 export default async function PortalLayout({
@@ -16,13 +16,18 @@ export default async function PortalLayout({
     redirect("/login");
   }
 
-  // Block portal access when agency is blocked
-  const agencyId = session.user.agencyId;
-  if (agencyId) {
+  // Block portal access when agency is blocked.
+  // CLIENT users don't have agencyId in session — derive it from the clients table.
+  const clientRecord = await db.query.clients.findFirst({
+    where: eq(clients.userId, session.user.id),
+    columns: { agencyId: true },
+  });
+
+  if (clientRecord?.agencyId) {
     const [agencyRow] = await db
       .select({ agencyStatus: agencies.agencyStatus })
       .from(agencies)
-      .where(eq(agencies.id, agencyId));
+      .where(eq(agencies.id, clientRecord.agencyId));
     if (agencyRow?.agencyStatus === "blocked") {
       redirect("/unauthorized");
     }

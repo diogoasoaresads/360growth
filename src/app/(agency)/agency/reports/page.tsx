@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { clients, deals, tickets, contacts } from "@/lib/db/schema";
-import { count, eq, and, sum, sql } from "drizzle-orm";
+import { count, eq, and, sum } from "drizzle-orm";
 import { getActiveAgencyIdOrThrow } from "@/lib/active-context";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";

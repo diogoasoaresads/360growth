@@ -20,7 +20,7 @@ export type UserStatus = "active" | "inactive" | "suspended";
 export type AgencyUserRole = "AGENCY_ADMIN" | "AGENCY_MEMBER";
 export type TemplateScope = "platform" | "agency";
 export type AgencyStatus = "active" | "suspended" | "trial" | "cancelled" | "deleted" | "blocked" | "past_due";
-export type ActiveScope = "platform" | "agency";
+export type ActiveScope = "platform" | "agency" | "client";
 export type DealStage = "LEAD" | "QUALIFIED" | "PROPOSAL" | "NEGOTIATION" | "CLOSED_WON" | "CLOSED_LOST";
 export type ActivityType = "NOTE" | "CALL" | "EMAIL" | "MEETING" | "TASK" | "STATUS_CHANGE";
 export type EntityType = "CLIENT" | "DEAL" | "TICKET" | "CONTACT" | "AGENCY" | "PLAN" | "USER" | "PLATFORM_SETTING" | "FEATURE_FLAG";
@@ -448,6 +448,9 @@ export const userContexts = pgTable("user_contexts", {
     .notNull()
     .default("platform"),
   activeAgencyId: text("active_agency_id").references(() => agencies.id, {
+    onDelete: "set null",
+  }),
+  activeClientId: text("active_client_id").references(() => clients.id, {
     onDelete: "set null",
   }),
   updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),

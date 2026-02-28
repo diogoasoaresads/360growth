@@ -1,8 +1,8 @@
 /** Incremental build identifier — bump on every release. */
-export const BUILD_ID = "0015";
+export const BUILD_ID = "0016";
 
 /** Timestamp of the last release (YYYY-MM-DD HH:mm). */
-export const UPDATED_AT = "2026-02-28 17:30";
+export const UPDATED_AT = "2026-02-28 19:00";
 
 /** Timezone used for UPDATED_AT. */
 export const UPDATED_TZ = "America/Sao_Paulo";
@@ -19,6 +19,15 @@ export interface ChangelogEntry {
  * Maintain at minimum the last 10 entries.
  */
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    id: "0016",
+    at: "2026-02-28 19:00",
+    lines: [
+      "P2-7 — Contexto unificado: user_contexts é a única fonte de verdade para todos os roles",
+      "Bootstrap automático no login: AGENCY_* persistem scope=agency e CLIENT persistem scope=client",
+      "Hotfix build: import não-usado isNotNull removido de templates.ts; portal corrige lookup de agencyId",
+    ],
+  },
   {
     id: "0015",
     at: "2026-02-28 17:30",

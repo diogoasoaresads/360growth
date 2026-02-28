@@ -24,7 +24,7 @@ interface Agency {
 
 interface ContextSwitcherClientProps {
   agencies: Agency[];
-  activeScope: "platform" | "agency";
+  activeScope: "platform" | "agency" | "client";
   activeAgencyId: string | null;
   activeAgencyName: string | null;
 }
