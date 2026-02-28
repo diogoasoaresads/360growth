@@ -14,6 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ContextSwitcherClient } from "@/components/admin/context-switcher-client";
 
 // Mapeamento de segmentos de URL para labels em PT-BR
 const SEGMENT_LABELS: Record<string, string> = {
@@ -52,7 +53,24 @@ function buildBreadcrumbs(pathname: string) {
   return crumbs;
 }
 
-export function AdminHeader() {
+interface Agency {
+  id: string;
+  name: string;
+}
+
+interface AdminHeaderProps {
+  agencies?: Agency[];
+  activeScope?: "platform" | "agency";
+  activeAgencyId?: string | null;
+  activeAgencyName?: string | null;
+}
+
+export function AdminHeader({
+  agencies = [],
+  activeScope = "platform",
+  activeAgencyId = null,
+  activeAgencyName = null,
+}: AdminHeaderProps) {
   const pathname = usePathname();
   const { data: session } = useSession();
   const breadcrumbs = buildBreadcrumbs(pathname);
@@ -86,47 +104,56 @@ export function AdminHeader() {
         ))}
       </nav>
 
-      {/* User menu */}
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm hover:bg-muted transition-colors outline-none">
-            <Avatar className="h-7 w-7">
-              <AvatarImage src={user?.image ?? undefined} />
-              <AvatarFallback className="text-xs bg-primary text-primary-foreground">
-                {initials}
-              </AvatarFallback>
-            </Avatar>
-            <span className="max-w-[140px] truncate font-medium hidden sm:block">
-              {user?.name ?? "Usuário"}
-            </span>
-          </button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-56">
-          <DropdownMenuLabel className="font-normal">
-            <div className="flex flex-col space-y-1">
-              <p className="text-sm font-medium leading-none">{user?.name}</p>
-              <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
-            </div>
-          </DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem>
-            <User className="mr-2 h-4 w-4" />
-            Perfil
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <Settings className="mr-2 h-4 w-4" />
-            Configurações
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            className="text-destructive focus:text-destructive"
-            onClick={() => signOut({ callbackUrl: "/login" })}
-          >
-            <LogOut className="mr-2 h-4 w-4" />
-            Sair
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      {/* Right side: Context Switcher + User menu */}
+      <div className="flex items-center gap-3">
+        <ContextSwitcherClient
+          agencies={agencies}
+          activeScope={activeScope}
+          activeAgencyId={activeAgencyId}
+          activeAgencyName={activeAgencyName}
+        />
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm hover:bg-muted transition-colors outline-none">
+              <Avatar className="h-7 w-7">
+                <AvatarImage src={user?.image ?? undefined} />
+                <AvatarFallback className="text-xs bg-primary text-primary-foreground">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+              <span className="max-w-[140px] truncate font-medium hidden sm:block">
+                {user?.name ?? "Usuário"}
+              </span>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuLabel className="font-normal">
+              <div className="flex flex-col space-y-1">
+                <p className="text-sm font-medium leading-none">{user?.name}</p>
+                <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>
+              <User className="mr-2 h-4 w-4" />
+              Perfil
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <Settings className="mr-2 h-4 w-4" />
+              Configurações
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              className="text-destructive focus:text-destructive"
+              onClick={() => signOut({ callbackUrl: "/login" })}
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Sair
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     </header>
   );
 }

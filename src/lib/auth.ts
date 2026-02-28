@@ -12,8 +12,9 @@ import {
   verificationTokens,
   agencyUsers,
   agencies,
+  userContexts,
 } from "@/lib/db/schema";
-import type { UserRole } from "@/lib/db/schema";
+import type { UserRole, ActiveScope } from "@/lib/db/schema";
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -102,6 +103,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.agencyName = agencyUser?.agencyName ?? null;
       }
 
+      // For SUPER_ADMIN, populate activeScope/activeAgencyId from user_contexts
+      if (token.id && token.role === "SUPER_ADMIN" && !token.isImpersonating) {
+        const ctx = await db
+          .select({
+            activeScope: userContexts.activeScope,
+            activeAgencyId: userContexts.activeAgencyId,
+          })
+          .from(userContexts)
+          .where(eq(userContexts.userId, token.id as string))
+          .limit(1)
+          .then((rows) => rows[0] ?? null);
+
+        token.activeScope = ctx?.activeScope ?? "platform";
+        token.activeAgencyId = ctx?.activeAgencyId ?? null;
+      }
+
       if (trigger === "update" && session) {
         token = { ...token, ...session };
       }
@@ -117,6 +134,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.agencyName = (token.agencyName as string | null) ?? null;
         session.user.isImpersonating = (token.isImpersonating as boolean) ?? false;
         session.user.originalAdminId = (token.originalAdminId as string | null) ?? null;
+        session.user.activeScope = (token.activeScope as ActiveScope | undefined) ?? "platform";
+        session.user.activeAgencyId = (token.activeAgencyId as string | null | undefined) ?? null;
       }
       return session;
     },
@@ -142,6 +161,8 @@ declare module "next-auth" {
       agencyName: string | null;
       isImpersonating: boolean;
       originalAdminId: string | null;
+      activeScope: ActiveScope;
+      activeAgencyId: string | null;
     };
   }
 
@@ -159,5 +180,7 @@ declare module "@auth/core/jwt" {
     agencyName?: string | null;
     isImpersonating?: boolean;
     originalAdminId?: string | null;
+    activeScope?: ActiveScope;
+    activeAgencyId?: string | null;
   }
 }

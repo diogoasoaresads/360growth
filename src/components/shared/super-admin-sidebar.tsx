@@ -17,72 +17,57 @@ import {
   DollarSign,
   ScrollText,
   SlidersHorizontal,
+  BarChart3,
 } from "lucide-react";
 
-const navItems = [
-  {
-    label: "Dashboard",
-    href: "/admin",
-    icon: LayoutDashboard,
-    exact: true,
-  },
-  {
-    label: "Agências",
-    href: "/admin/agencies",
-    icon: Building2,
-  },
-  {
-    label: "Planos",
-    href: "/admin/plans",
-    icon: CreditCard,
-  },
-  {
-    label: "Usuários",
-    href: "/admin/users",
-    icon: Users,
-  },
-  {
-    label: "Tickets",
-    href: "/admin/tickets",
-    icon: Ticket,
-  },
-  {
-    label: "Faturamento",
-    href: "/admin/billing",
-    icon: DollarSign,
-  },
-  {
-    label: "Configurações",
-    href: "/admin/settings",
-    icon: Settings,
-  },
-  {
-    label: "Config Center",
-    href: "/admin/config",
-    icon: SlidersHorizontal,
-  },
-  {
-    label: "Logs",
-    href: "/admin/logs",
-    icon: ScrollText,
-  },
+const adminNavItems = [
+  { label: "Dashboard",      href: "/admin",           icon: LayoutDashboard, exact: true },
+  { label: "Agências",       href: "/admin/agencies",  icon: Building2 },
+  { label: "Planos",         href: "/admin/plans",     icon: CreditCard },
+  { label: "Usuários",       href: "/admin/users",     icon: Users },
+  { label: "Tickets",        href: "/admin/tickets",   icon: Ticket },
+  { label: "Faturamento",    href: "/admin/billing",   icon: DollarSign },
+  { label: "Configurações",  href: "/admin/settings",  icon: Settings },
+  { label: "Config Center",  href: "/admin/config",    icon: SlidersHorizontal },
+  { label: "Logs",           href: "/admin/logs",      icon: ScrollText },
 ];
 
-export function SuperAdminSidebar() {
+const agencyNavItems = [
+  { label: "Dashboard",  href: "/agency/dashboard",    icon: LayoutDashboard, exact: true },
+  { label: "Clientes",   href: "/agency/crm/clients",  icon: Users },
+  { label: "Pipeline",   href: "/agency/crm/pipeline", icon: BarChart3 },
+  { label: "Tickets",    href: "/agency/tickets",      icon: Ticket },
+];
+
+interface SuperAdminSidebarProps {
+  activeScope?: "platform" | "agency";
+}
+
+export function SuperAdminSidebar({ activeScope = "platform" }: SuperAdminSidebarProps) {
   const pathname = usePathname();
+  const navItems = activeScope === "agency" ? agencyNavItems : adminNavItems;
+  const homeHref = activeScope === "agency" ? "/agency/dashboard" : "/admin";
+  const subtitle = activeScope === "agency" ? "Modo Agência" : "Super Admin";
 
   return (
     <aside className="flex h-screen w-64 flex-col bg-sidebar border-r border-sidebar-border">
       {/* Logo */}
       <div className="flex h-16 items-center px-6">
-        <Link href="/admin" className="flex items-center gap-2">
+        <Link href={homeHref} className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
             <span className="text-sm font-bold text-primary-foreground">3</span>
           </div>
           <div>
             <p className="text-sm font-bold text-sidebar-foreground">360growth</p>
-            <p className="text-[10px] text-sidebar-foreground/60 uppercase tracking-wider">
-              Super Admin
+            <p
+              className={cn(
+                "text-[10px] uppercase tracking-wider",
+                activeScope === "agency"
+                  ? "text-indigo-400"
+                  : "text-sidebar-foreground/60"
+              )}
+            >
+              {subtitle}
             </p>
           </div>
         </Link>
@@ -96,8 +81,8 @@ export function SuperAdminSidebar() {
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = item.exact
-            ? pathname === item.href
-            : pathname.startsWith(item.href);
+              ? pathname === item.href
+              : pathname.startsWith(item.href);
             return (
               <Link
                 key={item.href}

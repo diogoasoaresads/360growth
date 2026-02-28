@@ -62,7 +62,7 @@ export async function updatePlan(
       };
     }
 
-    const { priceMonthly, priceYearly, ...rest } = parsed.data;
+    const { priceMonthly, priceYearly, limits, ...rest } = parsed.data;
 
     const [updated] = await db
       .update(plans)
@@ -70,6 +70,7 @@ export async function updatePlan(
         ...rest,
         priceMonthly: String(priceMonthly),
         priceYearly: String(priceYearly),
+        limits: limits ?? null,
         updatedAt: new Date(),
       })
       .where(eq(plans.id, planId))

@@ -34,6 +34,7 @@ export type AuditAction =
   | "feature_flag.updated"
   | "feature_flag.deleted"
   | "feature_flag.override_set"
+  | "limit_blocked"
   | "auth.login"
   | "auth.logout"
   | "auth.failed"

@@ -7,17 +7,19 @@ import { eq, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { createClientSchema, updateClientSchema } from "@/lib/validations/client";
 import type { CreateClientInput, UpdateClientInput } from "@/lib/validations/client";
-
-async function getAgencyId(): Promise<string> {
-  const session = await auth();
-  if (!session?.user.agencyId) throw new Error("Unauthorized");
-  return session.user.agencyId;
-}
+import { validatePlanLimit } from "@/lib/plan-limits";
+import { getActiveAgencyIdOrThrow } from "@/lib/active-context";
 
 export async function createClient(input: CreateClientInput) {
-  const agencyId = await getAgencyId();
+  const session = await auth();
+  if (!session) throw new Error("Unauthorized");
+
+  const agencyId = await getActiveAgencyIdOrThrow();
   const parsed = createClientSchema.safeParse(input);
   if (!parsed.success) throw new Error("Dados inválidos");
+
+  const check = await validatePlanLimit(agencyId, "clients", session.user.id);
+  if (!check.allowed) throw new Error(check.error);
 
   const [client] = await db
     .insert(clients)
@@ -29,7 +31,7 @@ export async function createClient(input: CreateClientInput) {
 }
 
 export async function updateClient(id: string, input: UpdateClientInput) {
-  const agencyId = await getAgencyId();
+  const agencyId = await getActiveAgencyIdOrThrow();
   const parsed = updateClientSchema.safeParse(input);
   if (!parsed.success) throw new Error("Dados inválidos");
 
@@ -44,7 +46,7 @@ export async function updateClient(id: string, input: UpdateClientInput) {
 }
 
 export async function deleteClient(id: string) {
-  const agencyId = await getAgencyId();
+  const agencyId = await getActiveAgencyIdOrThrow();
 
   await db
     .delete(clients)
