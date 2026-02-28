@@ -18,7 +18,7 @@ import type { AdapterAccountType } from "next-auth/adapters";
 export type UserRole = "SUPER_ADMIN" | "AGENCY_ADMIN" | "AGENCY_MEMBER" | "CLIENT";
 export type UserStatus = "active" | "inactive" | "suspended";
 export type AgencyUserRole = "AGENCY_ADMIN" | "AGENCY_MEMBER";
-export type AgencyStatus = "active" | "suspended" | "trial" | "cancelled" | "deleted";
+export type AgencyStatus = "active" | "suspended" | "trial" | "cancelled" | "deleted" | "blocked" | "past_due";
 export type ActiveScope = "platform" | "agency";
 export type DealStage = "LEAD" | "QUALIFIED" | "PROPOSAL" | "NEGOTIATION" | "CLOSED_WON" | "CLOSED_LOST";
 export type ActivityType = "NOTE" | "CALL" | "EMAIL" | "MEETING" | "TASK" | "STATUS_CHANGE";

@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
-import { agencyUsers, clients, tickets, deals } from "@/lib/db/schema";
+import { agencyUsers, clients, tickets, deals, featureFlags, agencyFeatureFlags } from "@/lib/db/schema";
 import { eq, count } from "drizzle-orm";
 import { getAgencyById } from "@/lib/actions/admin/agencies";
 import { KpiCard } from "@/components/admin/kpi-card";
@@ -16,6 +16,7 @@ import { ptBR } from "date-fns/locale";
 import { Users, Building2, Ticket, TrendingUp, Globe, Phone, Mail, Calendar } from "lucide-react";
 import { getAgencyUsage, getAgencyPlanLimits } from "@/lib/plan-limits";
 import { UsagePanel } from "./usage-panel";
+import { AgencyControlPanel } from "./agency-control-panel";
 
 interface Props {
   params: Promise<{ agencyId: string }>;
@@ -33,6 +34,8 @@ export default async function AgencyOverviewPage({ params }: Props) {
     [{ clientsCount }],
     [{ ticketsCount }],
     [{ dealsCount }],
+    [{ globalFlagsCount }],
+    [{ overridesCount }],
     usage,
     limits,
   ] = await Promise.all([
@@ -40,12 +43,23 @@ export default async function AgencyOverviewPage({ params }: Props) {
     db.select({ clientsCount: count() }).from(clients).where(eq(clients.agencyId, agencyId)),
     db.select({ ticketsCount: count() }).from(tickets).where(eq(tickets.agencyId, agencyId)),
     db.select({ dealsCount: count() }).from(deals).where(eq(deals.agencyId, agencyId)),
+    db.select({ globalFlagsCount: count() }).from(featureFlags),
+    db.select({ overridesCount: count() }).from(agencyFeatureFlags).where(eq(agencyFeatureFlags.agencyId, agencyId)),
     getAgencyUsage(agencyId),
     getAgencyPlanLimits(agencyId),
   ]);
 
   return (
     <div className="space-y-6">
+      {/* Agency Control Panel */}
+      <AgencyControlPanel
+        agencyId={agencyId}
+        agencyStatus={agency.agencyStatus}
+        planName={agency.plan?.name ?? null}
+        globalFlagsCount={globalFlagsCount}
+        overridesCount={overridesCount}
+      />
+
       {/* KPI Cards */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <KpiCard

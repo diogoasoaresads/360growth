@@ -1,8 +1,8 @@
 /** Incremental build identifier — bump on every release. */
-export const BUILD_ID = "0010";
+export const BUILD_ID = "0011";
 
 /** Timestamp of the last release (YYYY-MM-DD HH:mm). */
-export const UPDATED_AT = "2026-02-28 09:15";
+export const UPDATED_AT = "2026-02-28 11:00";
 
 /** Timezone used for UPDATED_AT. */
 export const UPDATED_TZ = "America/Sao_Paulo";
@@ -19,6 +19,15 @@ export interface ChangelogEntry {
  * Maintain at minimum the last 10 entries.
  */
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    id: "0011",
+    at: "2026-02-28 11:00",
+    lines: [
+      "Painel de controle de agência (PO): botão 'Entrar no modo agência', status, plano e feature flags",
+      "Bloquear/desbloquear agência com audit log agency_status_changed (before/after)",
+      "Enforcement de agency blocked: AGENCY_* e CLIENT redirecionados; SUPER_ADMIN sempre permitido",
+    ],
+  },
   {
     id: "0010",
     at: "2026-02-28 09:15",

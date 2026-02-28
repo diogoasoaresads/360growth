@@ -35,6 +35,8 @@ export type AuditAction =
   | "feature_flag.deleted"
   | "feature_flag.override_set"
   | "limit_blocked"
+  | "agency_entered"
+  | "agency_status_changed"
   | "auth.login"
   | "auth.logout"
   | "auth.failed"
