@@ -1,8 +1,8 @@
 /** Incremental build identifier — bump on every release. */
-export const BUILD_ID = "0012";
+export const BUILD_ID = "0013";
 
 /** Timestamp of the last release (YYYY-MM-DD HH:mm). */
-export const UPDATED_AT = "2026-02-28 13:30";
+export const UPDATED_AT = "2026-02-28 15:00";
 
 /** Timezone used for UPDATED_AT. */
 export const UPDATED_TZ = "America/Sao_Paulo";
@@ -19,6 +19,15 @@ export interface ChangelogEntry {
  * Maintain at minimum the last 10 entries.
  */
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    id: "0013",
+    at: "2026-02-28 15:00",
+    lines: [
+      "Templates de mensagem editáveis: plataforma + overrides por agência com preview Markdown",
+      "sendSystemEmail integrado: welcome_user no registro e limit_blocked ao atingir limite",
+      "CRUD de templates com audit log template_changed; página /admin/templates no painel",
+    ],
+  },
   {
     id: "0012",
     at: "2026-02-28 13:30",

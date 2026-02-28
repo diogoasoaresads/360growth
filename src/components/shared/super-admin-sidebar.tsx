@@ -18,6 +18,7 @@ import {
   ScrollText,
   SlidersHorizontal,
   BarChart3,
+  Mail,
 } from "lucide-react";
 
 const adminNavItems = [
@@ -29,6 +30,7 @@ const adminNavItems = [
   { label: "Faturamento",    href: "/admin/billing",   icon: DollarSign },
   { label: "Configurações",  href: "/admin/settings",  icon: Settings },
   { label: "Config Center",  href: "/admin/config",    icon: SlidersHorizontal },
+  { label: "Templates",      href: "/admin/templates", icon: Mail },
   { label: "Logs",           href: "/admin/logs",      icon: ScrollText },
 ];
 

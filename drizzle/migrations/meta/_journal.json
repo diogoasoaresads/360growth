@@ -29,6 +29,13 @@
       "when": 1772281293487,
       "tag": "0003_add_user_contexts",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1772340600000,
+      "tag": "0004_add_message_templates",
+      "breakpoints": true
     }
   ]
 }

@@ -19,6 +19,8 @@ import { UsagePanel } from "./usage-panel";
 import { AgencyControlPanel } from "./agency-control-panel";
 import { FeatureFlagsPanel } from "./feature-flags-panel";
 import { getEffectiveAgencyFlags } from "@/lib/feature-flags/agency-flags";
+import { AgencyTemplatesPanel } from "./agency-templates-panel";
+import { listPlatformTemplates, listAgencyTemplateOverrides } from "@/lib/actions/admin/templates";
 
 interface Props {
   params: Promise<{ agencyId: string }>;
@@ -39,6 +41,8 @@ export default async function AgencyOverviewPage({ params }: Props) {
     usage,
     limits,
     resolvedFlags,
+    platformTemplatesResult,
+    agencyOverridesResult,
   ] = await Promise.all([
     db.select({ membersCount: count() }).from(agencyUsers).where(eq(agencyUsers.agencyId, agencyId)),
     db.select({ clientsCount: count() }).from(clients).where(eq(clients.agencyId, agencyId)),
@@ -47,7 +51,12 @@ export default async function AgencyOverviewPage({ params }: Props) {
     getAgencyUsage(agencyId),
     getAgencyPlanLimits(agencyId),
     getEffectiveAgencyFlags(agencyId),
+    listPlatformTemplates(),
+    listAgencyTemplateOverrides(agencyId),
   ]);
+
+  const platformTemplates = platformTemplatesResult.success ? platformTemplatesResult.data : [];
+  const agencyOverrides = agencyOverridesResult.success ? agencyOverridesResult.data : [];
 
   const overridesCount = resolvedFlags.filter((f) => f.override !== null).length;
 
@@ -161,6 +170,13 @@ export default async function AgencyOverviewPage({ params }: Props) {
 
       {/* Feature Flags Panel */}
       <FeatureFlagsPanel agencyId={agencyId} flags={resolvedFlags} />
+
+      {/* Templates Panel */}
+      <AgencyTemplatesPanel
+        agencyId={agencyId}
+        platformTemplates={platformTemplates}
+        agencyOverrides={agencyOverrides}
+      />
     </div>
   );
 }
