@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import LoginForm from "./login-form";
+import { BUILD_ID, UPDATED_AT } from "@/lib/build-info";
 
 export const metadata = {
   title: "Login | 360growth",
@@ -17,6 +18,9 @@ export default function LoginPage() {
         <Suspense fallback={<div className="text-white text-center">Carregando...</div>}>
           <LoginForm />
         </Suspense>
+        <p className="text-center text-xs text-slate-600 mt-6">
+          build {BUILD_ID} · {UPDATED_AT}
+        </p>
       </div>
     </div>
   );

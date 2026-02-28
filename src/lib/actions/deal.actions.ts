@@ -7,7 +7,7 @@ import { eq, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { createDealSchema, updateDealSchema } from "@/lib/validations/deal";
 import type { CreateDealInput, UpdateDealInput } from "@/lib/validations/deal";
-import { validatePlanLimit } from "@/lib/plan-limits";
+import { validatePlanLimit } from "@/lib/usage/agency-usage";
 import { getActiveAgencyIdOrThrow } from "@/lib/active-context";
 
 export async function createDeal(input: CreateDealInput) {
@@ -18,8 +18,7 @@ export async function createDeal(input: CreateDealInput) {
   const parsed = createDealSchema.safeParse(input);
   if (!parsed.success) throw new Error("Dados inválidos");
 
-  const check = await validatePlanLimit(agencyId, "deals", session.user.id);
-  if (!check.allowed) throw new Error(check.error);
+  await validatePlanLimit({ agencyId, actorUserId: session.user.id, resourceType: "deals" });
 
   const [deal] = await db
     .insert(deals)

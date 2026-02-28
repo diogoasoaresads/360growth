@@ -7,7 +7,7 @@ import { eq, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { createClientSchema, updateClientSchema } from "@/lib/validations/client";
 import type { CreateClientInput, UpdateClientInput } from "@/lib/validations/client";
-import { validatePlanLimit } from "@/lib/plan-limits";
+import { validatePlanLimit } from "@/lib/usage/agency-usage";
 import { getActiveAgencyIdOrThrow } from "@/lib/active-context";
 
 export async function createClient(input: CreateClientInput) {
@@ -18,8 +18,7 @@ export async function createClient(input: CreateClientInput) {
   const parsed = createClientSchema.safeParse(input);
   if (!parsed.success) throw new Error("Dados inválidos");
 
-  const check = await validatePlanLimit(agencyId, "clients", session.user.id);
-  if (!check.allowed) throw new Error(check.error);
+  await validatePlanLimit({ agencyId, actorUserId: session.user.id, resourceType: "clients" });
 
   const [client] = await db
     .insert(clients)
