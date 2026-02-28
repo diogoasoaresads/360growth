@@ -9,7 +9,7 @@ import {
   SCOPE_COOKIE,
   AGENCY_ID_COOKIE,
   COOKIE_OPTS,
-} from "@/lib/actions/admin/context";
+} from "@/lib/actions/admin/context.constants";
 import type { ActiveScope } from "@/lib/db/schema";
 
 export type { ActiveScope };

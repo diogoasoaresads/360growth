@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { SCOPE_COOKIE, AGENCY_ID_COOKIE } from "@/lib/actions/admin/context";
+import { SCOPE_COOKIE, AGENCY_ID_COOKIE } from "@/lib/actions/admin/context.constants";
 
 export default auth((req) => {
   const { pathname } = req.nextUrl;
