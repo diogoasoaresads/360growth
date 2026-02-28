@@ -6,19 +6,11 @@ import { db } from "@/lib/db";
 import { userContexts, agencies } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import type { ActiveScope } from "@/lib/db/schema";
-
-export type { ActiveScope };
-
-export const SCOPE_COOKIE = "admin_scope";
-export const AGENCY_ID_COOKIE = "admin_agency_id";
-
-export const COOKIE_OPTS = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "lax" as const,
-  path: "/",
-  maxAge: 60 * 60 * 24 * 7, // 7 days
-};
+import {
+  SCOPE_COOKIE,
+  AGENCY_ID_COOKIE,
+  COOKIE_OPTS,
+} from "@/lib/actions/admin/context.constants";
 
 export async function setActiveContext(
   scope: ActiveScope,
@@ -29,7 +21,6 @@ export async function setActiveContext(
     throw new Error("Não autorizado");
   }
 
-  // Validate that the target agency actually exists before accepting the switch
   if (scope === "agency") {
     if (!agencyId) throw new Error("agencyId é obrigatório para contexto de agência");
     const [agency] = await db
@@ -41,7 +32,6 @@ export async function setActiveContext(
 
   const resolvedAgencyId = scope === "agency" ? agencyId! : null;
 
-  // Persist to user_contexts (upsert)
   await db
     .insert(userContexts)
     .values({
@@ -59,7 +49,6 @@ export async function setActiveContext(
       },
     });
 
-  // Mirror to cookie (fast-path cache for middleware)
   const store = await cookies();
   store.set(SCOPE_COOKIE, scope, COOKIE_OPTS);
   if (resolvedAgencyId) {
