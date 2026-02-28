@@ -44,7 +44,7 @@ const agencyNavItems = [
 ];
 
 interface SuperAdminSidebarProps {
-  activeScope?: "platform" | "agency";
+  activeScope?: "platform" | "agency" | "client";
 }
 
 export function SuperAdminSidebar({ activeScope = "platform" }: SuperAdminSidebarProps) {

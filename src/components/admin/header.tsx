@@ -60,7 +60,7 @@ interface Agency {
 
 interface AdminHeaderProps {
   agencies?: Agency[];
-  activeScope?: "platform" | "agency";
+  activeScope?: "platform" | "agency" | "client";
   activeAgencyId?: string | null;
   activeAgencyName?: string | null;
 }

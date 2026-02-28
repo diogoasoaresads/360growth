@@ -3,7 +3,7 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { messageTemplates } from "@/lib/db/schema";
-import { eq, and, isNull, isNotNull } from "drizzle-orm";
+import { eq, and, isNull } from "drizzle-orm";
 import { createAuditLog } from "@/lib/audit-log";
 
 type ActionResult<T = void> =

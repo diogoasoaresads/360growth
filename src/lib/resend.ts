@@ -1,6 +1,15 @@
 import { Resend } from "resend";
 
-export const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy singleton — avoids throwing at module load time when key is absent (build env).
+let _resend: Resend | null = null;
+function getResend(): Resend {
+  if (!_resend) {
+    _resend = new Resend(process.env.RESEND_API_KEY ?? "");
+  }
+  return _resend;
+}
+/** @deprecated Use the helper functions below instead of accessing this directly. */
+export const resend = { emails: { send: (...args: Parameters<Resend["emails"]["send"]>) => getResend().emails.send(...args) } } as unknown as Resend;
 
 export async function sendWelcomeEmail(params: {
   to: string;

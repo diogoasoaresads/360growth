@@ -15,6 +15,10 @@ import {
   userContexts,
 } from "@/lib/db/schema";
 import type { UserRole, ActiveScope } from "@/lib/db/schema";
+import {
+  ensureFixedContextForUser,
+  getClientIdForUser,
+} from "@/lib/context-bootstrap";
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -81,6 +85,34 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.role = (user as { role?: UserRole }).role;
         token.isImpersonating = false;
         token.originalAdminId = null;
+
+        // P2-7: bootstrap user_contexts on first login for non-SUPER_ADMIN
+        if (token.role && token.role !== "SUPER_ADMIN" && user.id) {
+          try {
+            if (token.role === "AGENCY_ADMIN" || token.role === "AGENCY_MEMBER") {
+              const [agencyRow] = await db
+                .select({ agencyId: agencyUsers.agencyId })
+                .from(agencyUsers)
+                .where(eq(agencyUsers.userId, user.id))
+                .limit(1);
+              await ensureFixedContextForUser({
+                userId: user.id,
+                role: token.role,
+                agencyId: agencyRow?.agencyId ?? null,
+              });
+            } else if (token.role === "CLIENT") {
+              const clientId = await getClientIdForUser(user.id);
+              await ensureFixedContextForUser({
+                userId: user.id,
+                role: token.role,
+                clientId,
+              });
+            }
+          } catch (err) {
+            // Never fail login due to bootstrap errors
+            console.error("[auth] Context bootstrap error:", err);
+          }
+        }
       }
 
       // Don't override impersonation token fields — they are manually set
