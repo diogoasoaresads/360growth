@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { SCOPE_COOKIE, AGENCY_ID_COOKIE } from "@/lib/actions/admin/context";
 
 export default auth((req) => {
   const { pathname } = req.nextUrl;
@@ -37,6 +38,23 @@ export default auth((req) => {
 
   // AGENCY routes
   if (pathname.startsWith("/agency")) {
+    // SUPER_ADMIN can only access /agency/* when in agency context with a valid agencyId
+    if (role === "SUPER_ADMIN") {
+      const scope = req.cookies.get(SCOPE_COOKIE)?.value;
+      const agencyId = req.cookies.get(AGENCY_ID_COOKIE)?.value;
+      if (scope === "agency" && agencyId) {
+        return NextResponse.next();
+      }
+      // No agency context set — redirect to admin dashboard
+      return NextResponse.redirect(new URL("/admin", req.url));
+    }
+
+    // CLIENT cannot access /agency/*
+    if (role === "CLIENT") {
+      return NextResponse.redirect(new URL("/unauthorized", req.url));
+    }
+
+    // AGENCY_ADMIN and AGENCY_MEMBER: normal access
     if (role !== "AGENCY_ADMIN" && role !== "AGENCY_MEMBER") {
       return NextResponse.redirect(new URL("/unauthorized", req.url));
     }
@@ -57,7 +75,7 @@ export default auth((req) => {
 function redirectToDashboard(req: NextRequest, role: string) {
   switch (role) {
     case "SUPER_ADMIN":
-      return NextResponse.redirect(new URL("/super-admin/dashboard", req.url));
+      return NextResponse.redirect(new URL("/admin", req.url));
     case "AGENCY_ADMIN":
     case "AGENCY_MEMBER":
       return NextResponse.redirect(new URL("/agency/dashboard", req.url));
