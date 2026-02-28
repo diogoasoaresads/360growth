@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { AgencySidebar } from "@/components/shared/agency-sidebar";
+import { getActiveContextFromDB } from "@/lib/active-context";
 
 export default async function AgencyLayout({
   children,
@@ -9,11 +10,21 @@ export default async function AgencyLayout({
 }) {
   const session = await auth();
 
-  if (
-    !session ||
-    (session.user.role !== "AGENCY_ADMIN" && session.user.role !== "AGENCY_MEMBER")
-  ) {
+  if (!session) {
     redirect("/login");
+  }
+
+  const { role } = session.user;
+
+  if (role === "AGENCY_ADMIN" || role === "AGENCY_MEMBER") {
+    // Normal agency user — allow through
+  } else if (role === "SUPER_ADMIN") {
+    const { scope, agencyId } = await getActiveContextFromDB(session.user.id);
+    if (scope !== "agency" || !agencyId) {
+      redirect("/admin");
+    }
+  } else {
+    redirect("/unauthorized");
   }
 
   return (
