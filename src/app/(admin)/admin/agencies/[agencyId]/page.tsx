@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
-import { agencyUsers, clients, tickets, deals, featureFlags, agencyFeatureFlags } from "@/lib/db/schema";
+import { agencyUsers, clients, tickets, deals } from "@/lib/db/schema";
 import { eq, count } from "drizzle-orm";
 import { getAgencyById } from "@/lib/actions/admin/agencies";
 import { KpiCard } from "@/components/admin/kpi-card";
@@ -17,6 +17,8 @@ import { Users, Building2, Ticket, TrendingUp, Globe, Phone, Mail, Calendar } fr
 import { getAgencyUsage, getAgencyPlanLimits } from "@/lib/plan-limits";
 import { UsagePanel } from "./usage-panel";
 import { AgencyControlPanel } from "./agency-control-panel";
+import { FeatureFlagsPanel } from "./feature-flags-panel";
+import { getEffectiveAgencyFlags } from "@/lib/feature-flags/agency-flags";
 
 interface Props {
   params: Promise<{ agencyId: string }>;
@@ -34,20 +36,20 @@ export default async function AgencyOverviewPage({ params }: Props) {
     [{ clientsCount }],
     [{ ticketsCount }],
     [{ dealsCount }],
-    [{ globalFlagsCount }],
-    [{ overridesCount }],
     usage,
     limits,
+    resolvedFlags,
   ] = await Promise.all([
     db.select({ membersCount: count() }).from(agencyUsers).where(eq(agencyUsers.agencyId, agencyId)),
     db.select({ clientsCount: count() }).from(clients).where(eq(clients.agencyId, agencyId)),
     db.select({ ticketsCount: count() }).from(tickets).where(eq(tickets.agencyId, agencyId)),
     db.select({ dealsCount: count() }).from(deals).where(eq(deals.agencyId, agencyId)),
-    db.select({ globalFlagsCount: count() }).from(featureFlags),
-    db.select({ overridesCount: count() }).from(agencyFeatureFlags).where(eq(agencyFeatureFlags.agencyId, agencyId)),
     getAgencyUsage(agencyId),
     getAgencyPlanLimits(agencyId),
+    getEffectiveAgencyFlags(agencyId),
   ]);
+
+  const overridesCount = resolvedFlags.filter((f) => f.override !== null).length;
 
   return (
     <div className="space-y-6">
@@ -56,7 +58,7 @@ export default async function AgencyOverviewPage({ params }: Props) {
         agencyId={agencyId}
         agencyStatus={agency.agencyStatus}
         planName={agency.plan?.name ?? null}
-        globalFlagsCount={globalFlagsCount}
+        globalFlagsCount={resolvedFlags.length}
         overridesCount={overridesCount}
       />
 
@@ -156,6 +158,9 @@ export default async function AgencyOverviewPage({ params }: Props) {
 
       {/* Usage Panel */}
       <UsagePanel usage={usage} limits={limits} />
+
+      {/* Feature Flags Panel */}
+      <FeatureFlagsPanel agencyId={agencyId} flags={resolvedFlags} />
     </div>
   );
 }

@@ -1,7 +1,9 @@
-import { auth } from "@/lib/auth";
+import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { tickets } from "@/lib/db/schema";
 import { eq, desc } from "drizzle-orm";
+import { getActiveAgencyIdOrThrow } from "@/lib/active-context";
+import { isFeatureEnabled } from "@/lib/feature-flags/agency-flags";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -39,11 +41,10 @@ async function getTickets(agencyId: string) {
 }
 
 export default async function AgencyTicketsPage() {
-  const session = await auth();
-  const agencyId = session?.user.agencyId;
+  const agencyId = await getActiveAgencyIdOrThrow();
 
-  if (!agencyId) {
-    return <div className="p-8"><p>Agência não configurada.</p></div>;
+  if (!await isFeatureEnabled(agencyId, "tickets_enabled")) {
+    redirect("/agency/dashboard");
   }
 
   const ticketsList = await getTickets(agencyId);

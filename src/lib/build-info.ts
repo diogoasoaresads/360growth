@@ -1,8 +1,8 @@
 /** Incremental build identifier — bump on every release. */
-export const BUILD_ID = "0011";
+export const BUILD_ID = "0012";
 
 /** Timestamp of the last release (YYYY-MM-DD HH:mm). */
-export const UPDATED_AT = "2026-02-28 11:00";
+export const UPDATED_AT = "2026-02-28 13:30";
 
 /** Timezone used for UPDATED_AT. */
 export const UPDATED_TZ = "America/Sao_Paulo";
@@ -19,6 +19,15 @@ export interface ChangelogEntry {
  * Maintain at minimum the last 10 entries.
  */
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    id: "0012",
+    at: "2026-02-28 13:30",
+    lines: [
+      "Feature Flags por agência: overrides editáveis pelo PO com audit log (feature_flag.override_set)",
+      "UI de flags no admin da agência: global/override/efetivo + toggle e botão de remoção",
+      "Bloqueio real por flags tickets_enabled/deals_enabled + botão/modal de atualizações no login",
+    ],
+  },
   {
     id: "0011",
     at: "2026-02-28 11:00",
