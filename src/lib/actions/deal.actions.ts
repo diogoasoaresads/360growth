@@ -9,12 +9,18 @@ import { createDealSchema, updateDealSchema } from "@/lib/validations/deal";
 import type { CreateDealInput, UpdateDealInput } from "@/lib/validations/deal";
 import { validatePlanLimit } from "@/lib/usage/agency-usage";
 import { getActiveAgencyIdOrThrow } from "@/lib/active-context";
+import { isFeatureEnabled } from "@/lib/feature-flags/agency-flags";
 
 export async function createDeal(input: CreateDealInput) {
   const session = await auth();
   if (!session) throw new Error("Unauthorized");
 
   const agencyId = await getActiveAgencyIdOrThrow();
+
+  if (!await isFeatureEnabled(agencyId, "deals_enabled")) {
+    throw new Error("Módulo de deals está desabilitado para esta agência.");
+  }
+
   const parsed = createDealSchema.safeParse(input);
   if (!parsed.success) throw new Error("Dados inválidos");
 

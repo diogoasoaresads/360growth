@@ -1,9 +1,10 @@
 import "server-only";
 
 import { db } from "@/lib/db";
-import { agencies, agencyUsers, clients, deals, tickets, plans } from "@/lib/db/schema";
+import { agencies, agencyUsers, clients, deals, tickets, plans, users } from "@/lib/db/schema";
 import { eq, count } from "drizzle-orm";
 import { createAuditLog } from "@/lib/audit-log";
+import { sendSystemEmail } from "@/lib/messaging/email";
 
 export type LimitResourceType = "users" | "clients" | "deals" | "tickets";
 
@@ -118,6 +119,39 @@ export async function validatePlanLimit({
       agencyId,
       details: { resourceType, limit, usage: current, agencyId, actorUserId, context },
     });
+  }
+
+  // Notify AGENCY_ADMIN via email (non-blocking, silent on failure)
+  try {
+    const admin = await db
+      .select({ email: users.email, name: users.name })
+      .from(agencyUsers)
+      .innerJoin(users, eq(agencyUsers.userId, users.id))
+      .where(eq(agencyUsers.agencyId, agencyId))
+      .limit(1)
+      .then((rows) => rows.find((r) => r.email));
+
+    const [agencyRow] = await db
+      .select({ name: agencies.name })
+      .from(agencies)
+      .where(eq(agencies.id, agencyId));
+
+    if (admin?.email) {
+      sendSystemEmail({
+        to: admin.email,
+        templateKey: "limit_blocked",
+        agencyId,
+        variables: {
+          agencyName: agencyRow?.name ?? agencyId,
+          resourceType,
+          usage: String(current),
+          limit: String(limit),
+          upgradeUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/admin/agencies/${agencyId}`,
+        },
+      });
+    }
+  } catch {
+    // Silent — email failure must never affect the main limit enforcement
   }
 
   throw new Error(

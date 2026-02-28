@@ -17,11 +17,16 @@ import type {
 } from "@/lib/validations/ticket";
 import { validatePlanLimit } from "@/lib/usage/agency-usage";
 import { getActiveAgencyIdOrThrow } from "@/lib/active-context";
+import { isFeatureEnabled } from "@/lib/feature-flags/agency-flags";
 
 export async function createTicket(input: CreateTicketInput) {
   const session = await auth();
   if (!session) throw new Error("Unauthorized");
   const agencyId = await getActiveAgencyIdOrThrow();
+
+  if (!await isFeatureEnabled(agencyId, "tickets_enabled")) {
+    throw new Error("Módulo de tickets está desabilitado para esta agência.");
+  }
 
   const parsed = createTicketSchema.safeParse(input);
   if (!parsed.success) throw new Error("Dados inválidos");

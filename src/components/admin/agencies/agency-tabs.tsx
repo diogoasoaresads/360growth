@@ -14,6 +14,7 @@ const tabs = [
   { label: "Clientes", href: "/clients" },
   { label: "Assinatura", href: "/subscription" },
   { label: "Atividade", href: "/activity" },
+  { label: "Logs", href: "/logs" },
 ];
 
 export function AgencyTabs({ agencyId }: AgencyTabsProps) {

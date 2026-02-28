@@ -1,8 +1,8 @@
 /** Incremental build identifier — bump on every release. */
-export const BUILD_ID = "0010";
+export const BUILD_ID = "0014";
 
 /** Timestamp of the last release (YYYY-MM-DD HH:mm). */
-export const UPDATED_AT = "2026-02-28 09:15";
+export const UPDATED_AT = "2026-02-28 16:30";
 
 /** Timezone used for UPDATED_AT. */
 export const UPDATED_TZ = "America/Sao_Paulo";
@@ -19,6 +19,42 @@ export interface ChangelogEntry {
  * Maintain at minimum the last 10 entries.
  */
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    id: "0014",
+    at: "2026-02-28 16:30",
+    lines: [
+      "Página de logs operacionais por agência: timeline filtrada por ação, período e busca",
+      "Paginação (50 por página), modal com JSON do payload e índice composto em audit_logs",
+      "Tab Logs adicionada ao painel de agência; acesso restrito a SUPER_ADMIN",
+    ],
+  },
+  {
+    id: "0013",
+    at: "2026-02-28 15:00",
+    lines: [
+      "Templates de mensagem editáveis: plataforma + overrides por agência com preview Markdown",
+      "sendSystemEmail integrado: welcome_user no registro e limit_blocked ao atingir limite",
+      "CRUD de templates com audit log template_changed; página /admin/templates no painel",
+    ],
+  },
+  {
+    id: "0012",
+    at: "2026-02-28 13:30",
+    lines: [
+      "Feature Flags por agência: overrides editáveis pelo PO com audit log (feature_flag.override_set)",
+      "UI de flags no admin da agência: global/override/efetivo + toggle e botão de remoção",
+      "Bloqueio real por flags tickets_enabled/deals_enabled + botão/modal de atualizações no login",
+    ],
+  },
+  {
+    id: "0011",
+    at: "2026-02-28 11:00",
+    lines: [
+      "Painel de controle de agência (PO): botão 'Entrar no modo agência', status, plano e feature flags",
+      "Bloquear/desbloquear agência com audit log agency_status_changed (before/after)",
+      "Enforcement de agency blocked: AGENCY_* e CLIENT redirecionados; SUPER_ADMIN sempre permitido",
+    ],
+  },
   {
     id: "0010",
     at: "2026-02-28 09:15",

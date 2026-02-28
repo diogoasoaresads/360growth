@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { users, agencies, agencyUsers } from "@/lib/db/schema";
+import { sendSystemEmail } from "@/lib/messaging/email";
 
 const registerSchema = z.object({
   name: z.string().min(2),
@@ -84,6 +85,18 @@ export async function POST(req: NextRequest) {
       });
 
       return { user: newUser, agency: newAgency };
+    });
+
+    // Send welcome email (non-blocking)
+    sendSystemEmail({
+      to: result.user.email,
+      templateKey: "welcome_user",
+      agencyId: result.agency.id,
+      variables: {
+        userName: result.user.name ?? name,
+        agencyName: result.agency.name,
+        loginUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/login`,
+      },
     });
 
     return NextResponse.json(

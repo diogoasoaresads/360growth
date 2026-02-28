@@ -18,7 +18,8 @@ import type { AdapterAccountType } from "next-auth/adapters";
 export type UserRole = "SUPER_ADMIN" | "AGENCY_ADMIN" | "AGENCY_MEMBER" | "CLIENT";
 export type UserStatus = "active" | "inactive" | "suspended";
 export type AgencyUserRole = "AGENCY_ADMIN" | "AGENCY_MEMBER";
-export type AgencyStatus = "active" | "suspended" | "trial" | "cancelled" | "deleted";
+export type TemplateScope = "platform" | "agency";
+export type AgencyStatus = "active" | "suspended" | "trial" | "cancelled" | "deleted" | "blocked" | "past_due";
 export type ActiveScope = "platform" | "agency";
 export type DealStage = "LEAD" | "QUALIFIED" | "PROPOSAL" | "NEGOTIATION" | "CLOSED_WON" | "CLOSED_LOST";
 export type ActivityType = "NOTE" | "CALL" | "EMAIL" | "MEETING" | "TASK" | "STATUS_CHANGE";
@@ -477,6 +478,30 @@ export type FeatureFlag = typeof featureFlags.$inferSelect;
 export type NewFeatureFlag = typeof featureFlags.$inferInsert;
 export type AgencyFeatureFlag = typeof agencyFeatureFlags.$inferSelect;
 export type UserContext = typeof userContexts.$inferSelect;
+
+// ============================================================
+// MESSAGE TEMPLATES
+// ============================================================
+export const messageTemplates = pgTable("message_templates", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  scope: text("scope").$type<TemplateScope>().notNull(),
+  agencyId: text("agency_id").references(() => agencies.id, { onDelete: "cascade" }),
+  key: text("key").notNull(),
+  channel: text("channel").notNull().default("email"),
+  subject: text("subject").notNull(),
+  body: text("body").notNull(),
+  variablesAllowed: json("variables_allowed").$type<string[]>(),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
+  updatedBy: text("updated_by").references(() => users.id, { onDelete: "set null" }),
+});
+// Unique indexes enforced in migration SQL (partial unique for nullable agencyId)
+
+export type MessageTemplate = typeof messageTemplates.$inferSelect;
+export type NewMessageTemplate = typeof messageTemplates.$inferInsert;
 
 // ============================================================
 // HELPERS

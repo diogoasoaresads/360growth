@@ -16,6 +16,11 @@ import { ptBR } from "date-fns/locale";
 import { Users, Building2, Ticket, TrendingUp, Globe, Phone, Mail, Calendar } from "lucide-react";
 import { getAgencyUsage, getAgencyPlanLimits } from "@/lib/plan-limits";
 import { UsagePanel } from "./usage-panel";
+import { AgencyControlPanel } from "./agency-control-panel";
+import { FeatureFlagsPanel } from "./feature-flags-panel";
+import { getEffectiveAgencyFlags } from "@/lib/feature-flags/agency-flags";
+import { AgencyTemplatesPanel } from "./agency-templates-panel";
+import { listPlatformTemplates, listAgencyTemplateOverrides } from "@/lib/actions/admin/templates";
 
 interface Props {
   params: Promise<{ agencyId: string }>;
@@ -35,6 +40,9 @@ export default async function AgencyOverviewPage({ params }: Props) {
     [{ dealsCount }],
     usage,
     limits,
+    resolvedFlags,
+    platformTemplatesResult,
+    agencyOverridesResult,
   ] = await Promise.all([
     db.select({ membersCount: count() }).from(agencyUsers).where(eq(agencyUsers.agencyId, agencyId)),
     db.select({ clientsCount: count() }).from(clients).where(eq(clients.agencyId, agencyId)),
@@ -42,10 +50,27 @@ export default async function AgencyOverviewPage({ params }: Props) {
     db.select({ dealsCount: count() }).from(deals).where(eq(deals.agencyId, agencyId)),
     getAgencyUsage(agencyId),
     getAgencyPlanLimits(agencyId),
+    getEffectiveAgencyFlags(agencyId),
+    listPlatformTemplates(),
+    listAgencyTemplateOverrides(agencyId),
   ]);
+
+  const platformTemplates = platformTemplatesResult.success ? platformTemplatesResult.data : [];
+  const agencyOverrides = agencyOverridesResult.success ? agencyOverridesResult.data : [];
+
+  const overridesCount = resolvedFlags.filter((f) => f.override !== null).length;
 
   return (
     <div className="space-y-6">
+      {/* Agency Control Panel */}
+      <AgencyControlPanel
+        agencyId={agencyId}
+        agencyStatus={agency.agencyStatus}
+        planName={agency.plan?.name ?? null}
+        globalFlagsCount={resolvedFlags.length}
+        overridesCount={overridesCount}
+      />
+
       {/* KPI Cards */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <KpiCard
@@ -142,6 +167,16 @@ export default async function AgencyOverviewPage({ params }: Props) {
 
       {/* Usage Panel */}
       <UsagePanel usage={usage} limits={limits} />
+
+      {/* Feature Flags Panel */}
+      <FeatureFlagsPanel agencyId={agencyId} flags={resolvedFlags} />
+
+      {/* Templates Panel */}
+      <AgencyTemplatesPanel
+        agencyId={agencyId}
+        platformTemplates={platformTemplates}
+        agencyOverrides={agencyOverrides}
+      />
     </div>
   );
 }

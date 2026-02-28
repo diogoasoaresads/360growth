@@ -63,6 +63,105 @@ export interface AuditLogsResult {
   totalPages: number;
 }
 
+// ---------------------------------------------------------------------------
+// Per-agency logs (timeline view)
+// ---------------------------------------------------------------------------
+
+export interface AgencyLogsResult {
+  items: AuditLogEntry[];
+  totalCount: number;
+  page: number;
+  totalPages: number;
+}
+
+export async function getAgencyAuditLogs(params: {
+  agencyId: string;
+  page?: number;
+  action?: string;
+  period?: "7d" | "30d" | "all";
+  search?: string;
+}): Promise<ActionResult<AgencyLogsResult>> {
+  try {
+    await requireSuperAdmin();
+
+    const { agencyId, page = 1, action, period = "all", search } = params;
+    const perPage = 50;
+    const offset = (page - 1) * perPage;
+
+    const conditions = [eq(auditLogs.agencyId, agencyId)];
+
+    if (action) conditions.push(eq(auditLogs.action, action));
+
+    if (period === "7d") {
+      conditions.push(gte(auditLogs.createdAt, new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)));
+    } else if (period === "30d") {
+      conditions.push(gte(auditLogs.createdAt, new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)));
+    }
+
+    if (search) {
+      const pct = `%${search}%`;
+      conditions.push(
+        or(ilike(auditLogs.action, pct), ilike(auditLogs.entityId, pct))!
+      );
+    }
+
+    const where = and(...conditions);
+
+    const [rows, [{ total }]] = await Promise.all([
+      db
+        .select({
+          log: auditLogs,
+          userName: users.name,
+          userEmail: users.email,
+          userImage: users.image,
+          userId: users.id,
+          agencyName: agencies.name,
+        })
+        .from(auditLogs)
+        .leftJoin(users, eq(users.id, auditLogs.userId))
+        .leftJoin(agencies, eq(agencies.id, auditLogs.agencyId))
+        .where(where)
+        .orderBy(desc(auditLogs.createdAt))
+        .limit(perPage)
+        .offset(offset),
+
+      db.select({ total: count() }).from(auditLogs).where(where),
+    ]);
+
+    const items: AuditLogEntry[] = rows.map((r) => ({
+      id: r.log.id,
+      action: r.log.action,
+      entityType: r.log.entityType ?? null,
+      entityId: r.log.entityId ?? null,
+      agencyId: r.log.agencyId ?? null,
+      agencyName: r.agencyName ?? null,
+      ipAddress: r.log.ipAddress ?? null,
+      userAgent: r.log.userAgent ?? null,
+      metadata: r.log.metadata as Record<string, unknown> | null,
+      createdAt: r.log.createdAt,
+      user: r.userId
+        ? { id: r.userId, name: r.userName, email: r.userEmail, image: r.userImage }
+        : null,
+    }));
+
+    return {
+      success: true,
+      data: {
+        items,
+        totalCount: total,
+        page,
+        totalPages: Math.max(1, Math.ceil(total / perPage)),
+      },
+    };
+  } catch (err) {
+    return { success: false, error: (err as Error).message };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Platform-wide logs (existing)
+// ---------------------------------------------------------------------------
+
 export async function getAuditLogs(
   params: AuditLogsParams = {}
 ): Promise<ActionResult<AuditLogsResult>> {
