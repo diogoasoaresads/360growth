@@ -16,17 +16,12 @@ import type {
   AddTicketMessageInput,
 } from "@/lib/validations/ticket";
 import { validatePlanLimit } from "@/lib/plan-limits";
-
-async function getSession() {
-  const session = await auth();
-  if (!session) throw new Error("Unauthorized");
-  return session;
-}
+import { getActiveAgencyIdOrThrow } from "@/lib/active-context";
 
 export async function createTicket(input: CreateTicketInput) {
-  const session = await getSession();
-  const agencyId = session.user.agencyId;
-  if (!agencyId) throw new Error("Agency not found");
+  const session = await auth();
+  if (!session) throw new Error("Unauthorized");
+  const agencyId = await getActiveAgencyIdOrThrow();
 
   const parsed = createTicketSchema.safeParse(input);
   if (!parsed.success) throw new Error("Dados inválidos");
@@ -67,9 +62,9 @@ export async function createTicket(input: CreateTicketInput) {
 }
 
 export async function updateTicketStatus(id: string, input: UpdateTicketInput) {
-  const session = await getSession();
-  const agencyId = session.user.agencyId;
-  if (!agencyId) throw new Error("Agency not found");
+  const session = await auth();
+  if (!session) throw new Error("Unauthorized");
+  const agencyId = await getActiveAgencyIdOrThrow();
 
   const parsed = updateTicketSchema.safeParse(input);
   if (!parsed.success) throw new Error("Dados inválidos");
@@ -105,7 +100,8 @@ export async function updateTicketStatus(id: string, input: UpdateTicketInput) {
 }
 
 export async function addTicketMessage(ticketId: string, input: AddTicketMessageInput) {
-  const session = await getSession();
+  const session = await auth();
+  if (!session) throw new Error("Unauthorized");
 
   const parsed = addTicketMessageSchema.safeParse(input);
   if (!parsed.success) throw new Error("Dados inválidos");

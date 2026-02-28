@@ -8,16 +8,13 @@ import { revalidatePath } from "next/cache";
 import { createClientSchema, updateClientSchema } from "@/lib/validations/client";
 import type { CreateClientInput, UpdateClientInput } from "@/lib/validations/client";
 import { validatePlanLimit } from "@/lib/plan-limits";
-
-async function getSession() {
-  const session = await auth();
-  if (!session?.user.agencyId) throw new Error("Unauthorized");
-  return session;
-}
+import { getActiveAgencyIdOrThrow } from "@/lib/active-context";
 
 export async function createClient(input: CreateClientInput) {
-  const session = await getSession();
-  const agencyId = session.user.agencyId!;
+  const session = await auth();
+  if (!session) throw new Error("Unauthorized");
+
+  const agencyId = await getActiveAgencyIdOrThrow();
   const parsed = createClientSchema.safeParse(input);
   if (!parsed.success) throw new Error("Dados inválidos");
 
@@ -34,8 +31,7 @@ export async function createClient(input: CreateClientInput) {
 }
 
 export async function updateClient(id: string, input: UpdateClientInput) {
-  const session = await getSession();
-  const agencyId = session.user.agencyId!;
+  const agencyId = await getActiveAgencyIdOrThrow();
   const parsed = updateClientSchema.safeParse(input);
   if (!parsed.success) throw new Error("Dados inválidos");
 
@@ -50,8 +46,7 @@ export async function updateClient(id: string, input: UpdateClientInput) {
 }
 
 export async function deleteClient(id: string) {
-  const session = await getSession();
-  const agencyId = session.user.agencyId!;
+  const agencyId = await getActiveAgencyIdOrThrow();
 
   await db
     .delete(clients)

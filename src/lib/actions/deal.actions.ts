@@ -8,18 +8,13 @@ import { revalidatePath } from "next/cache";
 import { createDealSchema, updateDealSchema } from "@/lib/validations/deal";
 import type { CreateDealInput, UpdateDealInput } from "@/lib/validations/deal";
 import { validatePlanLimit } from "@/lib/plan-limits";
-
-async function getSession() {
-  const session = await auth();
-  if (!session) throw new Error("Unauthorized");
-  return session;
-}
+import { getActiveAgencyIdOrThrow } from "@/lib/active-context";
 
 export async function createDeal(input: CreateDealInput) {
-  const session = await getSession();
-  const agencyId = session.user.agencyId;
-  if (!agencyId) throw new Error("Agency not found");
+  const session = await auth();
+  if (!session) throw new Error("Unauthorized");
 
+  const agencyId = await getActiveAgencyIdOrThrow();
   const parsed = createDealSchema.safeParse(input);
   if (!parsed.success) throw new Error("Dados inválidos");
 
@@ -40,10 +35,7 @@ export async function createDeal(input: CreateDealInput) {
 }
 
 export async function updateDeal(id: string, input: UpdateDealInput) {
-  const session = await getSession();
-  const agencyId = session.user.agencyId;
-  if (!agencyId) throw new Error("Agency not found");
-
+  const agencyId = await getActiveAgencyIdOrThrow();
   const parsed = updateDealSchema.safeParse(input);
   if (!parsed.success) throw new Error("Dados inválidos");
 
@@ -64,9 +56,7 @@ export async function updateDeal(id: string, input: UpdateDealInput) {
 }
 
 export async function deleteDeal(id: string) {
-  const session = await getSession();
-  const agencyId = session.user.agencyId;
-  if (!agencyId) throw new Error("Agency not found");
+  const agencyId = await getActiveAgencyIdOrThrow();
 
   await db
     .delete(deals)

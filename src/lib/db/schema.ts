@@ -19,6 +19,7 @@ export type UserRole = "SUPER_ADMIN" | "AGENCY_ADMIN" | "AGENCY_MEMBER" | "CLIEN
 export type UserStatus = "active" | "inactive" | "suspended";
 export type AgencyUserRole = "AGENCY_ADMIN" | "AGENCY_MEMBER";
 export type AgencyStatus = "active" | "suspended" | "trial" | "cancelled" | "deleted";
+export type ActiveScope = "platform" | "agency";
 export type DealStage = "LEAD" | "QUALIFIED" | "PROPOSAL" | "NEGOTIATION" | "CLOSED_WON" | "CLOSED_LOST";
 export type ActivityType = "NOTE" | "CALL" | "EMAIL" | "MEETING" | "TASK" | "STATUS_CHANGE";
 export type EntityType = "CLIENT" | "DEAL" | "TICKET" | "CONTACT" | "AGENCY" | "PLAN" | "USER" | "PLATFORM_SETTING" | "FEATURE_FLAG";
@@ -435,6 +436,23 @@ export const ticketMessages = pgTable(
 );
 
 // ============================================================
+// USER CONTEXTS  (SUPER_ADMIN workspace context — one row per user)
+// ============================================================
+export const userContexts = pgTable("user_contexts", {
+  userId: text("user_id")
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
+  activeScope: text("active_scope")
+    .$type<ActiveScope>()
+    .notNull()
+    .default("platform"),
+  activeAgencyId: text("active_agency_id").references(() => agencies.id, {
+    onDelete: "set null",
+  }),
+  updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
+});
+
+// ============================================================
 // TYPE EXPORTS
 // ============================================================
 export type User = typeof users.$inferSelect;
@@ -458,6 +476,7 @@ export type PlatformSetting = typeof platformSettings.$inferSelect;
 export type FeatureFlag = typeof featureFlags.$inferSelect;
 export type NewFeatureFlag = typeof featureFlags.$inferInsert;
 export type AgencyFeatureFlag = typeof agencyFeatureFlags.$inferSelect;
+export type UserContext = typeof userContexts.$inferSelect;
 
 // ============================================================
 // HELPERS
