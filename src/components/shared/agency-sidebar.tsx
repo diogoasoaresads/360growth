@@ -50,6 +50,9 @@ const navItems: NavItem[] = [
     label: "Relatórios",
     href: "/agency/reports",
     icon: BarChart3,
+    children: [
+      { label: "Contas de Anúncios", href: "/agency/reports/ad-accounts" },
+    ],
   },
   {
     label: "Integrações",
@@ -67,6 +70,7 @@ export function AgencySidebar() {
   const pathname = usePathname();
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
     "/agency/crm": pathname.startsWith("/agency/crm"),
+    "/agency/reports": pathname.startsWith("/agency/reports"),
   });
 
   function toggleGroup(href: string) {

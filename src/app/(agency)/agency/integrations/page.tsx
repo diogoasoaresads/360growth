@@ -6,7 +6,11 @@ export const metadata: Metadata = {
   title: "Integrações",
 };
 
-export default async function IntegrationsPage() {
+export default async function IntegrationsPage({
+  searchParams,
+}: {
+  searchParams: { connected?: string; oauth_error?: string };
+}) {
   const integrations = await listIntegrations();
 
   return (
@@ -20,7 +24,11 @@ export default async function IntegrationsPage() {
         </p>
       </div>
 
-      <IntegrationsClient integrations={integrations} />
+      <IntegrationsClient
+        integrations={integrations}
+        connected={searchParams.connected}
+        oauthError={searchParams.oauth_error}
+      />
     </div>
   );
 }

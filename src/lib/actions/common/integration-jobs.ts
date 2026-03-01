@@ -6,9 +6,17 @@ import {
   integrations,
   integrationSecrets,
   integrationJobs,
+  adAccounts,
+  adCampaigns,
 } from "@/lib/db/schema";
 import type { IntegrationJob, IntegrationProvider, JobStatus } from "@/lib/db/schema";
 import type { Session } from "next-auth";
+import {
+  getGoogleAccessTokenFromRefreshToken,
+  googleAdsListAccessibleCustomers,
+  googleAdsGetCustomerInfo,
+  googleAdsListCampaigns,
+} from "@/lib/integrations/providers/google-ads";
 import { eq, and, desc } from "drizzle-orm";
 import type { SQL } from "drizzle-orm";
 import { getActiveAgencyIdOrThrow } from "@/lib/active-context";
@@ -88,8 +96,156 @@ async function _executeHandler(ctx: {
     return asaasPing(payload.apiKey);
   }
 
+  if (provider === "GOOGLE_ADS" && (type === "test" || type === "sync")) {
+    const [integration] = await db
+      .select({
+        secretId: integrations.secretId,
+        externalAccountId: integrations.externalAccountId,
+        agencyId: integrations.agencyId,
+      })
+      .from(integrations)
+      .where(eq(integrations.id, integrationId))
+      .limit(1);
+
+    if (!integration?.secretId) {
+      return {
+        ok: false,
+        message: "Google Ads sem credenciais. Conecte via OAuth primeiro.",
+      };
+    }
+
+    const [secret] = await db
+      .select({ encryptedPayload: integrationSecrets.encryptedPayload })
+      .from(integrationSecrets)
+      .where(eq(integrationSecrets.id, integration.secretId))
+      .limit(1);
+
+    if (!secret) {
+      return { ok: false, message: "Credenciais não encontradas no banco." };
+    }
+
+    const payload = decryptJson<{ refreshToken: string }>(
+      secret.encryptedPayload
+    );
+    if (!payload.refreshToken) {
+      return {
+        ok: false,
+        message:
+          "Refresh token inválido. Remova o acesso do app no Google e reconecte.",
+      };
+    }
+
+    let accessToken: string;
+    try {
+      accessToken = await getGoogleAccessTokenFromRefreshToken(
+        payload.refreshToken
+      );
+    } catch (e) {
+      return { ok: false, message: normalizeJobError(e) };
+    }
+
+    if (type === "test") {
+      try {
+        const customers = await googleAdsListAccessibleCustomers({ accessToken });
+        return {
+          ok: true,
+          message: `Google Ads conectado. ${customers.length} conta(s) acessível(is).`,
+        };
+      } catch (e) {
+        return { ok: false, message: normalizeJobError(e) };
+      }
+    }
+
+    // type === "sync"
+    if (!integration.externalAccountId) {
+      return {
+        ok: false,
+        message:
+          "Nenhuma conta Google Ads selecionada. Clique em 'Selecionar conta' primeiro.",
+      };
+    }
+
+    const customerId = integration.externalAccountId;
+    const ownerScope = "agency";
+    const ownerId = integration.agencyId;
+
+    try {
+      const customerInfo = await googleAdsGetCustomerInfo(customerId, {
+        accessToken,
+      });
+
+      await db
+        .insert(adAccounts)
+        .values({
+          ownerScope,
+          ownerId,
+          provider: "GOOGLE_ADS",
+          externalAccountId: customerId,
+          name: customerInfo.name ?? null,
+          currencyCode: customerInfo.currencyCode ?? null,
+          timeZone: customerInfo.timeZone ?? null,
+          isManager: customerInfo.isManager ?? null,
+        })
+        .onConflictDoUpdate({
+          target: [
+            adAccounts.ownerScope,
+            adAccounts.ownerId,
+            adAccounts.provider,
+            adAccounts.externalAccountId,
+          ],
+          set: {
+            name: customerInfo.name ?? null,
+            currencyCode: customerInfo.currencyCode ?? null,
+            timeZone: customerInfo.timeZone ?? null,
+            isManager: customerInfo.isManager ?? null,
+            updatedAt: new Date(),
+          },
+        });
+
+      const campaigns = await googleAdsListCampaigns(customerId, {
+        accessToken,
+      });
+
+      for (const c of campaigns) {
+        await db
+          .insert(adCampaigns)
+          .values({
+            ownerScope,
+            ownerId,
+            provider: "GOOGLE_ADS",
+            externalAccountId: customerId,
+            campaignId: c.campaignId,
+            name: c.name,
+            status: c.status ?? null,
+            channelType: c.channelType ?? null,
+          })
+          .onConflictDoUpdate({
+            target: [
+              adCampaigns.ownerScope,
+              adCampaigns.ownerId,
+              adCampaigns.provider,
+              adCampaigns.externalAccountId,
+              adCampaigns.campaignId,
+            ],
+            set: {
+              name: c.name,
+              status: c.status ?? null,
+              channelType: c.channelType ?? null,
+              updatedAt: new Date(),
+            },
+          });
+      }
+
+      return {
+        ok: true,
+        message: `Sync concluído: 1 conta, ${campaigns.length} campanha(s).`,
+      };
+    } catch (e) {
+      return { ok: false, message: normalizeJobError(e) };
+    }
+  }
+
   const labels: Record<string, string> = {
-    GOOGLE_ADS: "Google Ads",
     META_ADS: "Meta Ads",
     GA4: "Google Analytics 4",
     OTHER: "Integração",

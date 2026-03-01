@@ -540,6 +540,68 @@ export const integrationJobs = pgTable(
 );
 
 // ============================================================
+// AD ACCOUNTS (read-only sync — multi-scope)
+// ============================================================
+export const adAccounts = pgTable(
+  "ad_accounts",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    ownerScope: text("owner_scope").notNull(),
+    ownerId: text("owner_id").notNull(),
+    provider: text("provider").notNull().default("GOOGLE_ADS"),
+    externalAccountId: text("external_account_id").notNull(),
+    name: text("name"),
+    currencyCode: text("currency_code"),
+    timeZone: text("time_zone"),
+    isManager: boolean("is_manager"),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("ad_accounts_owner_idx").on(t.ownerScope, t.ownerId),
+    index("ad_accounts_provider_idx").on(t.provider),
+    unique("ad_accounts_owner_provider_external_unique").on(
+      t.ownerScope,
+      t.ownerId,
+      t.provider,
+      t.externalAccountId
+    ),
+  ]
+);
+
+export const adCampaigns = pgTable(
+  "ad_campaigns",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    ownerScope: text("owner_scope").notNull(),
+    ownerId: text("owner_id").notNull(),
+    provider: text("provider").notNull().default("GOOGLE_ADS"),
+    externalAccountId: text("external_account_id").notNull(),
+    campaignId: text("campaign_id").notNull(),
+    name: text("name").notNull(),
+    status: text("status"),
+    channelType: text("channel_type"),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("ad_campaigns_owner_idx").on(t.ownerScope, t.ownerId),
+    index("ad_campaigns_external_account_idx").on(t.externalAccountId),
+    unique("ad_campaigns_owner_provider_account_campaign_unique").on(
+      t.ownerScope,
+      t.ownerId,
+      t.provider,
+      t.externalAccountId,
+      t.campaignId
+    ),
+  ]
+);
+
+// ============================================================
 // TYPE EXPORTS
 // ============================================================
 export type User = typeof users.$inferSelect;
@@ -569,6 +631,10 @@ export type NewIntegration = typeof integrations.$inferInsert;
 export type IntegrationSecret = typeof integrationSecrets.$inferSelect;
 export type IntegrationJob = typeof integrationJobs.$inferSelect;
 export type NewIntegrationJob = typeof integrationJobs.$inferInsert;
+export type AdAccount = typeof adAccounts.$inferSelect;
+export type NewAdAccount = typeof adAccounts.$inferInsert;
+export type AdCampaign = typeof adCampaigns.$inferSelect;
+export type NewAdCampaign = typeof adCampaigns.$inferInsert;
 
 // ============================================================
 // MESSAGE TEMPLATES

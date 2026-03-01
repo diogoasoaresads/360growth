@@ -18,6 +18,7 @@ import {
   sessions,
   accounts,
   userContexts,
+  integrations,
 } from "./schema";
 import type { PlanFeatures, BillingStatus } from "./schema";
 import { hash } from "bcryptjs";
@@ -907,6 +908,17 @@ async function seed() {
     description:
       "Reunião de alinhamento realizada. Cliente interessado em expandir campanhas para o Google Ads no próximo trimestre.",
   });
+
+  // Integração Google Ads (desconectada) para Agência Demo
+  await db
+    .insert(integrations)
+    .values({
+      agencyId: agenciaDemo!.id,
+      provider: "GOOGLE_ADS",
+      status: "disconnected",
+      label: "Google Ads",
+    })
+    .onConflictDoNothing();
 
   // ── Summary ─────────────────────────────────────────────────────────────────
   console.log(`

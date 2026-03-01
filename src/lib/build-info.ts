@@ -1,8 +1,8 @@
 /** Incremental build identifier — bump on every release. */
-export const BUILD_ID = "0020";
+export const BUILD_ID = "0021";
 
 /** Timestamp of the last release (YYYY-MM-DD HH:mm). */
-export const UPDATED_AT = "2026-03-01 08:00";
+export const UPDATED_AT = "2026-03-01 10:00";
 
 /** Timezone used for UPDATED_AT. */
 export const UPDATED_TZ = "America/Sao_Paulo";
@@ -19,6 +19,15 @@ export interface ChangelogEntry {
  * Maintain at minimum the last 10 entries.
  */
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    id: "0021",
+    at: "2026-03-01 10:00",
+    lines: [
+      "Google Ads OAuth dentro do sistema (conectar + trocar conta)",
+      "Testar/Sync do Google Ads via Job Engine com histórico",
+      "Tabelas básicas para armazenar contas e campanhas (read-only)",
+    ],
+  },
   {
     id: "0020",
     at: "2026-03-01 08:00",
