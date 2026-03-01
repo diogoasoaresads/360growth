@@ -8,6 +8,7 @@ import {
 import { SettingsTable } from "./settings-table";
 import { FlagsTable } from "./flags-table";
 import { ConfigAuditLogs } from "./config-audit-logs";
+import { PageContainer } from "@/components/workspace/PageContainer";
 
 export const metadata: Metadata = {
   title: "Config Center — 360growth Admin",
@@ -32,15 +33,10 @@ export default async function ConfigPage({ searchParams }: Props) {
   const logs = logsResult.success ? logsResult.data : [];
 
   return (
-    <div className="flex-1 space-y-6 p-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Config Center</h1>
-        <p className="text-sm text-muted-foreground">
-          Gerencie configurações da plataforma, feature flags e visualize o histórico de alterações.
-        </p>
-      </div>
-
+    <PageContainer
+      title="Config Center"
+      description="Gerencie configurações da plataforma, feature flags e visualize o histórico de alterações."
+    >
       <Tabs defaultValue={activeTab}>
         <TabsList>
           <TabsTrigger value="settings">Platform Settings</TabsTrigger>
@@ -60,6 +56,6 @@ export default async function ConfigPage({ searchParams }: Props) {
           <ConfigAuditLogs data={logs} />
         </TabsContent>
       </Tabs>
-    </div>
+    </PageContainer>
   );
 }

@@ -1,8 +1,8 @@
 /** Incremental build identifier — bump on every release. */
-export const BUILD_ID = "0023";
+export const BUILD_ID = "0024";
 
 /** Timestamp of the last release (YYYY-MM-DD HH:mm). */
-export const UPDATED_AT = "2026-03-01 14:00";
+export const UPDATED_AT = "2026-03-01 16:00";
 
 /** Timezone used for UPDATED_AT. */
 export const UPDATED_TZ = "America/Sao_Paulo";
@@ -19,6 +19,15 @@ export interface ChangelogEntry {
  * Maintain at minimum the last 10 entries.
  */
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    id: "0024",
+    at: "2026-03-01 16:00",
+    lines: [
+      "PACOTE 2: Universal Page Pattern — PageContainer, FilterDrawer, ActionsMenu, EmptyState",
+      "PageContainer aplicado em todas as páginas admin/agency/portal (feature-flagged)",
+      "Fix contexto PO→Agency: revalidatePath no servidor + remoção de router.refresh() em corrida",
+    ],
+  },
   {
     id: "0023",
     at: "2026-03-01 14:00",

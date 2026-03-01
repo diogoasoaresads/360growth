@@ -14,6 +14,7 @@ import {
 } from "@/lib/actions/admin/dashboard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { PageContainer } from "@/components/workspace/PageContainer";
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -65,14 +66,10 @@ async function DashboardContent() {
 
 export default function AdminDashboardPage() {
   return (
-    <div className="p-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Visão geral da plataforma 360growth
-        </p>
-      </div>
-
+    <PageContainer
+      title="Dashboard"
+      description="Visão geral da plataforma 360growth"
+    >
       <Suspense
         fallback={
           <div className="space-y-6">
@@ -94,6 +91,6 @@ export default function AdminDashboardPage() {
       >
         <DashboardContent />
       </Suspense>
-    </div>
+    </PageContainer>
   );
 }

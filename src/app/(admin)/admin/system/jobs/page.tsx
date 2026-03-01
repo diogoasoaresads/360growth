@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { integrationJobs, agencies } from "@/lib/db/schema";
 import { desc, sql } from "drizzle-orm";
 import { JobsClient } from "./jobs-client";
+import { PageContainer } from "@/components/workspace/PageContainer";
 
 export const metadata: Metadata = {
   title: "Jobs de Integração",
@@ -47,18 +48,11 @@ export default async function IntegrationJobsPage() {
   const providers = Array.from(new Set(rows.map((r) => r.provider))).sort();
 
   return (
-    <div className="flex-1 space-y-6 p-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">
-          Jobs de Integração
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Histórico de execuções do Integration Engine. Últimos 100 jobs de
-          todas as agências.
-        </p>
-      </div>
-
+    <PageContainer
+      title="Jobs de Integração"
+      description="Histórico de execuções do Integration Engine. Últimos 100 jobs de todas as agências."
+    >
       <JobsClient jobs={rows} providers={providers} />
-    </div>
+    </PageContainer>
   );
 }

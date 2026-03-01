@@ -5,6 +5,7 @@ import { eq, and, count } from "drizzle-orm";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TicketIcon, CheckCircle, Clock } from "lucide-react";
+import { PageContainer } from "@/components/workspace/PageContainer";
 
 export const metadata = {
   title: "Dashboard | Portal do Cliente",
@@ -53,14 +54,11 @@ export default async function PortalDashboard() {
   }
 
   return (
-    <div className="p-8 space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Meu Portal</h1>
-        <p className="text-muted-foreground mt-1">
-          Bem-vindo, {session?.user.name}
-        </p>
-      </div>
-
+    <div className="p-6">
+      <PageContainer
+        title="Meu Portal"
+        description={`Bem-vindo, ${session?.user.name ?? ""}`}
+      >
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -119,6 +117,7 @@ export default async function PortalDashboard() {
           )}
         </CardContent>
       </Card>
+      </PageContainer>
     </div>
   );
 }

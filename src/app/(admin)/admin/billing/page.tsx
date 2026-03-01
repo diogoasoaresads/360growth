@@ -24,6 +24,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { PageContainer } from "@/components/workspace/PageContainer";
 
 export const metadata: Metadata = {
   title: "Faturamento — 360growth Admin",
@@ -61,15 +62,10 @@ export default async function BillingPage() {
   const monthlyRevenue = revenueResult.success ? revenueResult.data : [];
 
   return (
-    <div className="flex-1 space-y-6 p-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Faturamento</h1>
-        <p className="text-sm text-muted-foreground">
-          Visão geral de receita e transações da plataforma.
-        </p>
-      </div>
-
+    <PageContainer
+      title="Faturamento"
+      description="Visão geral de receita e transações da plataforma."
+    >
       {/* KPI Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <KpiCard
@@ -208,6 +204,6 @@ export default async function BillingPage() {
           </Table>
         </CardContent>
       </Card>
-    </div>
+    </PageContainer>
   );
 }

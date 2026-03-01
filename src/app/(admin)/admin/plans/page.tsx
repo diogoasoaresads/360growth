@@ -1,8 +1,8 @@
 import { getPlans } from "@/lib/actions/admin/plans";
-import { PageHeader } from "@/components/admin/page-header";
 import { PlanCard } from "@/components/admin/plans/plan-card";
 import { EmptyState } from "@/components/admin/empty-state";
 import { CreditCard } from "lucide-react";
+import { PageContainer } from "@/components/workspace/PageContainer";
 
 export const metadata = { title: "Planos — 360growth Admin" };
 
@@ -11,22 +11,19 @@ export default async function PlansPage() {
 
   if (!result.success) {
     return (
-      <div>
-        <PageHeader title="Planos" description="Gerencie os planos da plataforma" />
-        <p className="text-destructive mt-4">{result.error}</p>
-      </div>
+      <PageContainer title="Planos" description="Gerencie os planos da plataforma">
+        <p className="text-destructive">{result.error}</p>
+      </PageContainer>
     );
   }
 
   const plans = result.data;
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Planos"
-        description={`${plans.length} plano${plans.length !== 1 ? "s" : ""} cadastrado${plans.length !== 1 ? "s" : ""}`}
-      />
-
+    <PageContainer
+      title="Planos"
+      description={`${plans.length} plano${plans.length !== 1 ? "s" : ""} cadastrado${plans.length !== 1 ? "s" : ""}`}
+    >
       {plans.length === 0 ? (
         <EmptyState
           icon={CreditCard}
@@ -40,6 +37,6 @@ export default async function PlansPage() {
           ))}
         </div>
       )}
-    </div>
+    </PageContainer>
   );
 }

@@ -4,6 +4,7 @@ import { AgencySettingsForm } from "./settings-form";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Building2, Calendar, Hash } from "lucide-react";
+import { PageContainer } from "@/components/workspace/PageContainer";
 
 export const metadata = {
   title: "Configurações | Agência",
@@ -41,17 +42,12 @@ export default async function AgencySettingsPage() {
   };
 
   return (
-    <div className="p-8 space-y-8">
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Configurações</h1>
-          <p className="text-muted-foreground mt-1">
-            Gerencie as informações da sua agência
-          </p>
-        </div>
-        <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
-      </div>
-
+    <div className="p-6">
+      <PageContainer
+        title="Configurações"
+        description="Gerencie as informações da sua agência"
+        actions={<Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>}
+      >
       {/* Meta Info */}
       <Card>
         <CardContent className="flex flex-wrap gap-6 p-4 text-sm text-muted-foreground">
@@ -87,6 +83,7 @@ export default async function AgencySettingsPage() {
           Apenas administradores da agência podem editar estas configurações.
         </p>
       )}
+      </PageContainer>
     </div>
   );
 }

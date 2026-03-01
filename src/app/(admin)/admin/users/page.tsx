@@ -1,6 +1,6 @@
-import { PageHeader } from "@/components/admin/page-header";
 import { UsersDataTable } from "@/components/admin/users/users-data-table";
 import { getUsers } from "@/lib/actions/admin/users";
+import { PageContainer } from "@/components/workspace/PageContainer";
 
 export const metadata = { title: "Usuários — 360growth Admin" };
 
@@ -31,17 +31,15 @@ export default async function UsersPage({ searchParams }: Props) {
   const total = result.success ? result.data.total : 0;
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Usuários"
-        description={`${total} usuário${total !== 1 ? "s" : ""} na plataforma`}
-      />
-
+    <PageContainer
+      title="Usuários"
+      description={`${total} usuário${total !== 1 ? "s" : ""} na plataforma`}
+    >
       {!result.success && (
         <p className="text-destructive text-sm">{result.error}</p>
       )}
 
       <UsersDataTable data={data} total={total} />
-    </div>
+    </PageContainer>
   );
 }

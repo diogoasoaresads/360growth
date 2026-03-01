@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Plus, Users, Mail, Phone, Briefcase } from "lucide-react";
+import { PageContainer } from "@/components/workspace/PageContainer";
 
 export const metadata = {
   title: "Contatos | CRM",
@@ -26,20 +27,17 @@ export default async function ContactsPage() {
   const contactsList = await getContacts(agencyId);
 
   return (
-    <div className="p-8 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Contatos</h1>
-          <p className="text-muted-foreground mt-1">
-            {contactsList.length} contato{contactsList.length !== 1 ? "s" : ""} cadastrado{contactsList.length !== 1 ? "s" : ""}
-          </p>
-        </div>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Novo Contato
-        </Button>
-      </div>
-
+    <div className="p-6">
+      <PageContainer
+        title="Contatos"
+        description={`${contactsList.length} contato${contactsList.length !== 1 ? "s" : ""} cadastrado${contactsList.length !== 1 ? "s" : ""}`}
+        actions={
+          <Button>
+            <Plus className="mr-2 h-4 w-4" />
+            Novo Contato
+          </Button>
+        }
+      >
       {contactsList.length === 0 ? (
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-16 space-y-4">
@@ -119,6 +117,7 @@ export default async function ContactsPage() {
           })}
         </div>
       )}
+      </PageContainer>
     </div>
   );
 }

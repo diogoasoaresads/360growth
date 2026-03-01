@@ -12,6 +12,7 @@ import {
   XCircle,
   MinusCircle,
 } from "lucide-react";
+import { PageContainer } from "@/components/workspace/PageContainer";
 
 export const metadata = { title: "System Health | Admin" };
 
@@ -89,14 +90,10 @@ export default async function HealthPage() {
   const health = await getSystemHealth();
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">System Health</h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          Estado atual dos serviços e integrações da plataforma.
-        </p>
-      </div>
-
+    <PageContainer
+      title="System Health"
+      description="Estado atual dos serviços e integrações da plataforma."
+    >
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {/* ------------------------------------------------------------------ */}
         {/* DATABASE */}
@@ -243,6 +240,6 @@ export default async function HealthPage() {
           )}
         </Card>
       </div>
-    </div>
+    </PageContainer>
   );
 }

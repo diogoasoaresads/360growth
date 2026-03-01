@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Mail, Phone, Building2, Globe } from "lucide-react";
 import Link from "next/link";
 import { getActiveAgencyIdOrThrow } from "@/lib/active-context";
+import { PageContainer } from "@/components/workspace/PageContainer";
 
 export const metadata = {
   title: "Clientes | Agência",
@@ -21,20 +22,17 @@ export default async function ClientsPage() {
   });
 
   return (
-    <div className="p-8 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Clientes</h1>
-          <p className="text-muted-foreground mt-1">
-            {clientsList.length} cliente{clientsList.length !== 1 ? "s" : ""} cadastrado{clientsList.length !== 1 ? "s" : ""}
-          </p>
-        </div>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Novo Cliente
-        </Button>
-      </div>
-
+    <div className="p-6">
+      <PageContainer
+        title="Clientes"
+        description={`${clientsList.length} cliente${clientsList.length !== 1 ? "s" : ""} cadastrado${clientsList.length !== 1 ? "s" : ""}`}
+        actions={
+          <Button>
+            <Plus className="mr-2 h-4 w-4" />
+            Novo Cliente
+          </Button>
+        }
+      >
       {clientsList.length === 0 ? (
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-16 space-y-4">
@@ -103,6 +101,7 @@ export default async function ClientsPage() {
           ))}
         </div>
       )}
+      </PageContainer>
     </div>
   );
 }

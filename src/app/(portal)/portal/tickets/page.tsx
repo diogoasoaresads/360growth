@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Plus, TicketIcon } from "lucide-react";
 import type { TicketStatus, TicketPriority } from "@/lib/db/schema";
+import { PageContainer } from "@/components/workspace/PageContainer";
 
 export const metadata = {
   title: "Meus Tickets | Portal",
@@ -48,20 +49,17 @@ export default async function PortalTicketsPage() {
   });
 
   return (
-    <div className="p-8 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Meus Tickets</h1>
-          <p className="text-muted-foreground mt-1">
-            Acompanhe suas solicitações
-          </p>
-        </div>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Abrir Ticket
-        </Button>
-      </div>
-
+    <div className="p-6">
+      <PageContainer
+        title="Meus Tickets"
+        description="Acompanhe suas solicitações"
+        actions={
+          <Button>
+            <Plus className="mr-2 h-4 w-4" />
+            Abrir Ticket
+          </Button>
+        }
+      >
       {ticketsList.length === 0 ? (
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-16 space-y-4">
@@ -110,6 +108,7 @@ export default async function PortalTicketsPage() {
           ))}
         </div>
       )}
+      </PageContainer>
     </div>
   );
 }
