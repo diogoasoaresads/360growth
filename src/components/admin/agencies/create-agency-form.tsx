@@ -45,6 +45,8 @@ function numField(onChange: (...args: unknown[]) => void) {
     onChange(e.target.valueAsNumber);
 }
 
+const PLAN_NONE = "__none__";
+
 export function CreateAgencyForm({ plans }: CreateAgencyFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -80,6 +82,8 @@ export function CreateAgencyForm({ plans }: CreateAgencyFormProps) {
 
   function onSubmit(values: CreateAgencyInput) {
     startTransition(async () => {
+      // Convert sentinel back to empty string (server action treats "" as null)
+      if (values.planId === PLAN_NONE) values.planId = "";
       const result = await createAgency(values);
       if (result.success) {
         toast.success("Agência criada com sucesso!");
@@ -211,7 +215,7 @@ export function CreateAgencyForm({ plans }: CreateAgencyFormProps) {
                   <FormLabel>Plano</FormLabel>
                   <Select
                     onValueChange={field.onChange}
-                    value={field.value ?? ""}
+                    value={field.value || PLAN_NONE}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -219,7 +223,7 @@ export function CreateAgencyForm({ plans }: CreateAgencyFormProps) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">Sem plano</SelectItem>
+                      <SelectItem value={PLAN_NONE}>Sem plano</SelectItem>
                       {plans.map((plan) => (
                         <SelectItem key={plan.id} value={plan.id}>
                           {plan.name}

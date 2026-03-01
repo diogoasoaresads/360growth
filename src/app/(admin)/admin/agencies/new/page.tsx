@@ -1,6 +1,7 @@
 import { getPlans } from "@/lib/actions/admin/plans";
 import { PageHeader } from "@/components/admin/page-header";
 import { CreateAgencyForm } from "@/components/admin/agencies/create-agency-form";
+import { ErrorBoundary } from "@/components/error-boundary";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -25,7 +26,9 @@ export default async function NewAgencyPage() {
         title="Nova agência"
         description="Preencha os dados para cadastrar uma nova agência na plataforma."
       />
-      <CreateAgencyForm plans={plans} />
+      <ErrorBoundary>
+        <CreateAgencyForm plans={plans} />
+      </ErrorBoundary>
     </div>
   );
 }
