@@ -49,31 +49,31 @@ export default async function AgencySubscriptionPage({ params }: Props) {
             <span className="text-sm text-muted-foreground w-32">Status</span>
             <Badge
               variant={
-                agency.subscriptionStatus === "active" ? "default" : "secondary"
+                agency.billingStatus === "active" ? "default" : "secondary"
               }
             >
-              {agency.subscriptionStatus ?? "Inativo"}
+              {agency.billingStatus}
             </Badge>
           </div>
           <div className="flex items-center gap-3">
             <span className="text-sm text-muted-foreground w-32">Plano</span>
             <span className="font-medium">{agency.plan?.name ?? "—"}</span>
           </div>
-          {agency.stripeCustomerId && (
+          {agency.asaasCustomerId && (
             <div className="flex items-center gap-3">
               <span className="text-sm text-muted-foreground w-32">
-                Stripe Customer
+                Asaas Customer
               </span>
-              <span className="font-mono text-xs">{agency.stripeCustomerId}</span>
+              <span className="font-mono text-xs">{agency.asaasCustomerId}</span>
             </div>
           )}
-          {agency.stripeSubscriptionId && (
+          {agency.asaasSubscriptionId && (
             <div className="flex items-center gap-3">
               <span className="text-sm text-muted-foreground w-32">
-                Stripe Sub
+                Asaas Sub
               </span>
               <span className="font-mono text-xs">
-                {agency.stripeSubscriptionId}
+                {agency.asaasSubscriptionId}
               </span>
             </div>
           )}

@@ -138,7 +138,7 @@ const _getDashboardMetrics = unstable_cache(
         .where(
           and(
             isNull(agencies.deletedAt),
-            eq(agencies.subscriptionStatus, "active")
+            eq(agencies.billingStatus, "active")
           )
         )
         .groupBy(plans.id, plans.priceMonthly),
@@ -276,7 +276,7 @@ const _getRevenueByPlan = unstable_cache(
         and(
           eq(agencies.planId, plans.id),
           isNull(agencies.deletedAt),
-          eq(agencies.subscriptionStatus, "active")
+          eq(agencies.billingStatus, "active")
         )
       )
       .where(eq(plans.isActive, true))

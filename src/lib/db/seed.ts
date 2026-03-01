@@ -18,7 +18,7 @@ import {
   sessions,
   accounts,
 } from "./schema";
-import type { PlanFeatures } from "./schema";
+import type { PlanFeatures, BillingStatus } from "./schema";
 import { hash } from "bcryptjs";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -167,7 +167,7 @@ const AGENCY_DATA = [
     slug: "acme-digital",
     planSlug: "pro",
     agencyStatus: "active" as const,
-    subscriptionStatus: "active",
+    billingStatus: "active",
     adminName: "Ana Souza",
     memberNames: ["João Silva", "Maria Oliveira", "Rafael Santos"],
     clientCount: 12,
@@ -177,7 +177,7 @@ const AGENCY_DATA = [
     slug: "webpro",
     planSlug: "growth",
     agencyStatus: "active" as const,
-    subscriptionStatus: "active",
+    billingStatus: "active",
     adminName: "Pedro Costa",
     memberNames: ["Fernanda Alves", "Lucas Rocha"],
     clientCount: 10,
@@ -187,7 +187,7 @@ const AGENCY_DATA = [
     slug: "startup-lab",
     planSlug: "starter",
     agencyStatus: "trial" as const,
-    subscriptionStatus: "trialing",
+    billingStatus: "trial",
     adminName: "Julia Ferreira",
     memberNames: ["Gabriel Martins"],
     clientCount: 5,
@@ -197,7 +197,7 @@ const AGENCY_DATA = [
     slug: "creative-house",
     planSlug: "enterprise",
     agencyStatus: "active" as const,
-    subscriptionStatus: "active",
+    billingStatus: "active",
     adminName: "Carlos Mendes",
     memberNames: ["Camila Rodrigues", "Eduardo Nascimento", "Isabela Carvalho"],
     clientCount: 15,
@@ -207,7 +207,7 @@ const AGENCY_DATA = [
     slug: "old-marketing",
     planSlug: "starter",
     agencyStatus: "suspended" as const,
-    subscriptionStatus: "inactive",
+    billingStatus: "trial",
     adminName: "Beatriz Lima",
     memberNames: [],
     clientCount: 0,
@@ -462,7 +462,7 @@ async function seed() {
         planId: plan.id,
         agencyStatus: a.agencyStatus,
         active: a.agencyStatus !== "suspended",
-        subscriptionStatus: a.subscriptionStatus,
+        billingStatus: a.billingStatus as BillingStatus,
         trialEndsAt,
         maxMembers: plan.maxUsers,
         maxClients: plan.maxClients,
@@ -650,14 +650,14 @@ async function seed() {
   for (let i = 0; i < createdAgencies.length; i++) {
     const agency = createdAgencies[i]!;
     const ad = AGENCY_DATA[i]!;
-    if (ad.subscriptionStatus === "active" || ad.subscriptionStatus === "trialing") {
+    if (ad.billingStatus === "active" || ad.billingStatus === "trial") {
       logEntries.push({
         userId: admin.id,
         action: "subscription.created",
         entityType: "AGENCY",
         entityId: agency.id,
         agencyId: agency.id,
-        metadata: { plan: ad.planSlug, status: ad.subscriptionStatus },
+        metadata: { plan: ad.planSlug, status: ad.billingStatus },
         createdAt: agency.createdAt,
       });
     }

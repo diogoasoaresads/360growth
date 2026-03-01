@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { stripe } from "@/lib/stripe";
 import { db } from "@/lib/db";
 import { agencies } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
+import { mapStripeToBillingStatus } from "@/lib/billing/stripe";
+import { getStripe } from "@/lib/stripe";
 import type Stripe from "stripe";
 
 export async function POST(req: NextRequest) {
+  const stripe = getStripe();
   const body = await req.text();
   const signature = req.headers.get("stripe-signature");
 
@@ -36,8 +38,11 @@ export async function POST(req: NextRequest) {
           await db
             .update(agencies)
             .set({
-              stripeSubscriptionId: subscription.id,
-              subscriptionStatus: subscription.status,
+              asaasSubscriptionId: subscription.id,
+              billingStatus: mapStripeToBillingStatus(subscription.status),
+              trialEndsAt: subscription.trial_end
+                ? new Date(subscription.trial_end * 1000)
+                : null,
               updatedAt: new Date(),
             })
             .where(eq(agencies.id, agencyId));
@@ -53,8 +58,8 @@ export async function POST(req: NextRequest) {
           await db
             .update(agencies)
             .set({
-              stripeSubscriptionId: null,
-              subscriptionStatus: "canceled",
+              asaasSubscriptionId: null,
+              billingStatus: "canceled",
               active: false,
               updatedAt: new Date(),
             })
@@ -75,7 +80,7 @@ export async function POST(req: NextRequest) {
             await db
               .update(agencies)
               .set({
-                subscriptionStatus: "active",
+                billingStatus: "active",
                 active: true,
                 updatedAt: new Date(),
               })
@@ -97,7 +102,7 @@ export async function POST(req: NextRequest) {
             await db
               .update(agencies)
               .set({
-                subscriptionStatus: "past_due",
+                billingStatus: "past_due",
                 updatedAt: new Date(),
               })
               .where(eq(agencies.id, agencyId));

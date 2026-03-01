@@ -24,8 +24,10 @@ export type BillingStatus = "active" | "trial" | "past_due" | "canceled";
 export type ActiveScope = "platform" | "agency" | "client";
 export type DealStage = "LEAD" | "QUALIFIED" | "PROPOSAL" | "NEGOTIATION" | "CLOSED_WON" | "CLOSED_LOST";
 export type ActivityType = "NOTE" | "CALL" | "EMAIL" | "MEETING" | "TASK" | "STATUS_CHANGE";
-export type EntityType = "CLIENT" | "DEAL" | "TICKET" | "CONTACT" | "AGENCY" | "PLAN" | "USER" | "PLATFORM_SETTING" | "FEATURE_FLAG";
+export type EntityType = "CLIENT" | "DEAL" | "TICKET" | "CONTACT" | "AGENCY" | "PLAN" | "USER" | "PLATFORM_SETTING" | "FEATURE_FLAG" | "INTEGRATION";
 export type SettingType = "string" | "number" | "boolean" | "json";
+export type IntegrationProvider = "ASAAS" | "GOOGLE_ADS" | "META_ADS" | "GA4" | "OTHER";
+export type IntegrationStatus = "connected" | "expired" | "error" | "revoked" | "disconnected";
 export type TicketStatus = "OPEN" | "IN_PROGRESS" | "WAITING" | "RESOLVED" | "CLOSED";
 export type TicketPriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
 export type TicketType = "SUPPORT" | "FEATURE_REQUEST" | "BUG" | "BILLING" | "OTHER";
@@ -160,11 +162,11 @@ export const agencies = pgTable("agencies", {
   email: text("email"),
   phone: text("phone"),
   planId: text("plan_id").references(() => plans.id),
-  stripeCustomerId: text("stripe_customer_id"),
-  stripeSubscriptionId: text("stripe_subscription_id"),
-  subscriptionStatus: text("subscription_status").default("inactive"),
+  asaasCustomerId: text("asaas_customer_id"),
+  asaasSubscriptionId: text("asaas_subscription_id"),
   billingStatus: text("billing_status").$type<BillingStatus>().notNull().default("trial"),
   trialEndsAt: timestamp("trial_ends_at", { mode: "date" }),
+  currentPeriodEnd: timestamp("current_period_end", { mode: "date" }),
   active: boolean("active").notNull().default(true),
   agencyStatus: text("agency_status").$type<AgencyStatus>().notNull().default("trial"),
   maxMembers: integer("max_members").notNull().default(5),
@@ -459,6 +461,52 @@ export const userContexts = pgTable("user_contexts", {
 });
 
 // ============================================================
+// INTEGRATIONS
+// ============================================================
+export const integrationSecrets = pgTable("integration_secrets", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  encryptedPayload: text("encrypted_payload").notNull(),
+  keyVersion: integer("key_version").notNull().default(1),
+  rotatedAt: timestamp("rotated_at", { mode: "date" }),
+  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
+});
+
+export const integrations = pgTable(
+  "integrations",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    agencyId: text("agency_id")
+      .notNull()
+      .references(() => agencies.id, { onDelete: "cascade" }),
+    provider: text("provider").$type<IntegrationProvider>().notNull(),
+    status: text("status")
+      .$type<IntegrationStatus>()
+      .notNull()
+      .default("disconnected"),
+    accountLabel: text("account_label"),
+    externalAccountId: text("external_account_id"),
+    scopes: json("scopes").$type<string[]>(),
+    secretId: text("secret_id").references(() => integrationSecrets.id, {
+      onDelete: "set null",
+    }),
+    lastSyncedAt: timestamp("last_synced_at", { mode: "date" }),
+    lastError: text("last_error"),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("integrations_agency_provider_idx").on(t.agencyId, t.provider),
+    index("integrations_status_idx").on(t.status),
+    unique("integrations_agency_provider_unique").on(t.agencyId, t.provider),
+  ]
+);
+
+// ============================================================
 // TYPE EXPORTS
 // ============================================================
 export type User = typeof users.$inferSelect;
@@ -483,6 +531,9 @@ export type FeatureFlag = typeof featureFlags.$inferSelect;
 export type NewFeatureFlag = typeof featureFlags.$inferInsert;
 export type AgencyFeatureFlag = typeof agencyFeatureFlags.$inferSelect;
 export type UserContext = typeof userContexts.$inferSelect;
+export type Integration = typeof integrations.$inferSelect;
+export type NewIntegration = typeof integrations.$inferInsert;
+export type IntegrationSecret = typeof integrationSecrets.$inferSelect;
 
 // ============================================================
 // MESSAGE TEMPLATES

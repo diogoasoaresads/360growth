@@ -1,8 +1,8 @@
 /** Incremental build identifier — bump on every release. */
-export const BUILD_ID = "0017";
+export const BUILD_ID = "0018";
 
 /** Timestamp of the last release (YYYY-MM-DD HH:mm). */
-export const UPDATED_AT = "2026-02-28 23:30";
+export const UPDATED_AT = "2026-03-01 00:30";
 
 /** Timezone used for UPDATED_AT. */
 export const UPDATED_TZ = "America/Sao_Paulo";
@@ -19,6 +19,15 @@ export interface ChangelogEntry {
  * Maintain at minimum the last 10 entries.
  */
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    id: "0018",
+    at: "2026-03-01 00:30",
+    lines: [
+      "Fix admin/agencies query after Asaas migration (removed Stripe fields)",
+      "Schema: stripeCustomerId/stripeSubscriptionId/subscriptionStatus → asaasCustomerId/asaasSubscriptionId/billingStatus + currentPeriodEnd",
+      "Billing, dashboard e webhook atualizados para usar billingStatus; seed corrigido",
+    ],
+  },
   {
     id: "0017",
     at: "2026-02-28 23:30",
