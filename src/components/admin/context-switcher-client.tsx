@@ -1,7 +1,6 @@
 "use client";
 
 import { useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Check, ChevronDown, Layers, Building2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -35,7 +34,6 @@ export function ContextSwitcherClient({
   activeAgencyId,
   activeAgencyName,
 }: ContextSwitcherClientProps) {
-  const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
   function handlePlatform() {
@@ -43,7 +41,7 @@ export function ContextSwitcherClient({
       try {
         await setActiveContext("platform");
         toast.success("Contexto: Plataforma");
-        router.push("/admin");
+        window.location.href = "/admin";
       } catch {
         toast.error("Erro ao trocar contexto.");
       }
@@ -55,7 +53,7 @@ export function ContextSwitcherClient({
       try {
         await setActiveContext("agency", agency.id);
         toast.success(`Contexto: ${agency.name}`);
-        router.push("/agency/dashboard");
+        window.location.href = "/agency/dashboard";
       } catch {
         toast.error("Erro ao trocar contexto.");
       }

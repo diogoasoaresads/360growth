@@ -14,6 +14,7 @@ import {
   Mail,
   ScrollText,
   Ticket,
+  FlaskConical,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -73,6 +74,7 @@ const platformNav: NavGroup[] = [
       { label: "Jobs",       href: "/admin/system/jobs",         icon: Zap },
       { label: "DB Migrate", href: "/admin/system/db-migrate",   icon: DatabaseZap },
       { label: "Integrações", href: "/admin/integrations",       icon: Plug },
+      { label: "QA Setup",   href: "/admin/system/qa",           icon: FlaskConical },
     ],
   },
 ];

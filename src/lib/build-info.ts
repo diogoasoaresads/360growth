@@ -1,8 +1,8 @@
 /** Incremental build identifier — bump on every release. */
-export const BUILD_ID = "0024";
+export const BUILD_ID = "0025";
 
 /** Timestamp of the last release (YYYY-MM-DD HH:mm). */
-export const UPDATED_AT = "2026-03-01 16:00";
+export const UPDATED_AT = "2026-03-01 18:00";
 
 /** Timezone used for UPDATED_AT. */
 export const UPDATED_TZ = "America/Sao_Paulo";
@@ -19,6 +19,15 @@ export interface ChangelogEntry {
  * Maintain at minimum the last 10 entries.
  */
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    id: "0025",
+    at: "2026-03-01 18:00",
+    lines: [
+      "Fix Nova Agência: zodResolver substituído por inline resolver (compatível com Zod v4)",
+      "Fix troca de contexto PO→Agência: window.location.href substitui router.push (limpa cache RSC)",
+      "QA Demo Setup: /admin/system/qa cria dados de teste com 1 clique (agência, admin, cliente, deal, ticket)",
+    ],
+  },
   {
     id: "0024",
     at: "2026-03-01 16:00",
