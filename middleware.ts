@@ -15,7 +15,7 @@ export default auth((req) => {
   }
 
   // Public routes - no auth needed
-  const publicRoutes = ["/", "/login", "/register", "/api/auth", "/api/webhooks"];
+  const publicRoutes = ["/", "/login", "/register", "/api/auth", "/api/webhooks", "/s/"];
   const isPublicRoute = publicRoutes.some((route) => pathname.startsWith(route));
 
   if (isPublicRoute) {

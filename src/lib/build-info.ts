@@ -1,8 +1,8 @@
 /** Incremental build identifier — bump on every release. */
-export const BUILD_ID = "0025";
+export const BUILD_ID = "0026";
 
 /** Timestamp of the last release (YYYY-MM-DD HH:mm). */
-export const UPDATED_AT = "2026-03-01 18:00";
+export const UPDATED_AT = "2026-03-01 20:00";
 
 /** Timezone used for UPDATED_AT. */
 export const UPDATED_TZ = "America/Sao_Paulo";
@@ -19,6 +19,15 @@ export interface ChangelogEntry {
  * Maintain at minimum the last 10 entries.
  */
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    id: "0026",
+    at: "2026-03-01 20:00",
+    lines: [
+      "Login V2: layout split (brand/form), toggle senha, lembrar e-mail, atalhos QA (env-gated)",
+      "Sites públicos /s/[slug]: porta de entrada com CTA 'Área da Agência' e 'Acessar Portal'",
+      "Proteção open redirect + redirect inteligente pós-login (role × returnTo validado)",
+    ],
+  },
   {
     id: "0025",
     at: "2026-03-01 18:00",
