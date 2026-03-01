@@ -1,8 +1,8 @@
 /** Incremental build identifier — bump on every release. */
-export const BUILD_ID = "0027";
+export const BUILD_ID = "0028";
 
 /** Timestamp of the last release (YYYY-MM-DD HH:mm). */
-export const UPDATED_AT = "2026-03-01 21:00";
+export const UPDATED_AT = "2026-03-01 22:00";
 
 /** Timezone used for UPDATED_AT. */
 export const UPDATED_TZ = "America/Sao_Paulo";
@@ -19,6 +19,15 @@ export interface ChangelogEntry {
  * Maintain at minimum the last 10 entries.
  */
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    id: "0028",
+    at: "2026-03-01 22:00",
+    lines: [
+      "Fix crítico: JWT callback agora protegido com try-catch — erros de DB não derrubam autenticação",
+      "Fix agency dashboard: usa getActiveAgencyIdOrThrow() — funciona para SUPER_ADMIN em modo agência",
+      "Fix portal dashboard: SUPER_ADMIN em modo cliente resolve clientId via user_contexts",
+    ],
+  },
   {
     id: "0027",
     at: "2026-03-01 21:00",

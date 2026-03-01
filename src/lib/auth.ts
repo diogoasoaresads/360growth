@@ -118,37 +118,49 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       // Don't override impersonation token fields — they are manually set
       // Only refresh agencyId if not impersonating
       if (token.id && token.role !== "SUPER_ADMIN") {
-        const agencyUser = await db
-          .select({
-            agencyId: agencyUsers.agencyId,
-            role: agencyUsers.role,
-            agencyName: agencies.name,
-          })
-          .from(agencyUsers)
-          .leftJoin(agencies, eq(agencies.id, agencyUsers.agencyId))
-          .where(eq(agencyUsers.userId, token.id as string))
-          .limit(1)
-          .then((rows) => rows[0] ?? null);
+        try {
+          const agencyUser = await db
+            .select({
+              agencyId: agencyUsers.agencyId,
+              role: agencyUsers.role,
+              agencyName: agencies.name,
+            })
+            .from(agencyUsers)
+            .leftJoin(agencies, eq(agencies.id, agencyUsers.agencyId))
+            .where(eq(agencyUsers.userId, token.id as string))
+            .limit(1)
+            .then((rows) => rows[0] ?? null);
 
-        token.agencyId = agencyUser?.agencyId ?? null;
-        token.agencyRole = agencyUser?.role ?? null;
-        token.agencyName = agencyUser?.agencyName ?? null;
+          token.agencyId = agencyUser?.agencyId ?? null;
+          token.agencyRole = agencyUser?.role ?? null;
+          token.agencyName = agencyUser?.agencyName ?? null;
+        } catch (err) {
+          // Never fail the JWT callback due to DB errors — keep existing token values
+          console.error("[auth] JWT agencyUser refresh error:", err);
+        }
       }
 
       // For SUPER_ADMIN, populate activeScope/activeAgencyId from user_contexts
       if (token.id && token.role === "SUPER_ADMIN" && !token.isImpersonating) {
-        const ctx = await db
-          .select({
-            activeScope: userContexts.activeScope,
-            activeAgencyId: userContexts.activeAgencyId,
-          })
-          .from(userContexts)
-          .where(eq(userContexts.userId, token.id as string))
-          .limit(1)
-          .then((rows) => rows[0] ?? null);
+        try {
+          const ctx = await db
+            .select({
+              activeScope: userContexts.activeScope,
+              activeAgencyId: userContexts.activeAgencyId,
+            })
+            .from(userContexts)
+            .where(eq(userContexts.userId, token.id as string))
+            .limit(1)
+            .then((rows) => rows[0] ?? null);
 
-        token.activeScope = ctx?.activeScope ?? "platform";
-        token.activeAgencyId = ctx?.activeAgencyId ?? null;
+          token.activeScope = ctx?.activeScope ?? "platform";
+          token.activeAgencyId = ctx?.activeAgencyId ?? null;
+        } catch (err) {
+          // Never fail the JWT callback due to DB errors — keep existing token values
+          console.error("[auth] JWT context refresh error:", err);
+          token.activeScope = (token.activeScope as string | undefined) ?? "platform";
+          token.activeAgencyId = (token.activeAgencyId as string | null | undefined) ?? null;
+        }
       }
 
       if (trigger === "update" && session) {
