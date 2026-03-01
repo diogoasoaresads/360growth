@@ -2,7 +2,6 @@
 
 import { useTransition } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -52,7 +51,16 @@ export function CreateAgencyForm({ plans }: CreateAgencyFormProps) {
   const [isPending, startTransition] = useTransition();
 
   const form = useForm<CreateAgencyInput>({
-    resolver: zodResolver(createAgencySchema),
+    resolver: async (values) => {
+      const result = createAgencySchema.safeParse(values);
+      if (result.success) return { values: result.data, errors: {} };
+      const errors: Record<string, { message: string; type: string }> = {};
+      for (const issue of result.error.issues) {
+        const path = issue.path.join(".");
+        if (path && !errors[path]) errors[path] = { message: issue.message, type: issue.code };
+      }
+      return { values: {}, errors };
+    },
     defaultValues: {
       name: "",
       slug: "",
