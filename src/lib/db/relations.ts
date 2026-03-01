@@ -13,6 +13,8 @@ import {
   tickets,
   ticketMessages,
   plans,
+  integrations,
+  integrationSecrets,
 } from "./schema";
 
 export const usersRelations = relations(users, ({ many }) => ({
@@ -48,6 +50,7 @@ export const agenciesRelations = relations(agencies, ({ one, many }) => ({
   tickets: many(tickets),
   activities: many(activities),
   auditLogs: many(auditLogs),
+  integrations: many(integrations),
 }));
 
 export const agencyUsersRelations = relations(agencyUsers, ({ one }) => ({
@@ -146,3 +149,21 @@ export const auditLogsRelations = relations(auditLogs, ({ one }) => ({
     references: [users.id],
   }),
 }));
+
+export const integrationsRelations = relations(integrations, ({ one }) => ({
+  agency: one(agencies, {
+    fields: [integrations.agencyId],
+    references: [agencies.id],
+  }),
+  secret: one(integrationSecrets, {
+    fields: [integrations.secretId],
+    references: [integrationSecrets.id],
+  }),
+}));
+
+export const integrationSecretsRelations = relations(
+  integrationSecrets,
+  ({ many }) => ({
+    integrations: many(integrations),
+  })
+);
