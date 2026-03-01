@@ -52,7 +52,10 @@ export type AuditAction =
   | "integration_connected"
   | "integration_rotated"
   | "integration_disconnected"
-  | "integration_failed";
+  | "integration_failed"
+  | "integration_job_created"
+  | "integration_job_started"
+  | "integration_job_finished";
 
 export async function createAuditLog(params: {
   userId: string;

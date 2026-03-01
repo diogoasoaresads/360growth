@@ -20,20 +20,22 @@ import {
   BarChart3,
   Mail,
   Activity,
+  Zap,
 } from "lucide-react";
 
 const adminNavItems = [
-  { label: "Dashboard",      href: "/admin",           icon: LayoutDashboard, exact: true },
-  { label: "Agências",       href: "/admin/agencies",  icon: Building2 },
-  { label: "Planos",         href: "/admin/plans",     icon: CreditCard },
-  { label: "Usuários",       href: "/admin/users",     icon: Users },
-  { label: "Tickets",        href: "/admin/tickets",   icon: Ticket },
-  { label: "Faturamento",    href: "/admin/billing",   icon: DollarSign },
-  { label: "Configurações",  href: "/admin/settings",  icon: Settings },
-  { label: "Config Center",  href: "/admin/config",    icon: SlidersHorizontal },
-  { label: "Templates",      href: "/admin/templates", icon: Mail },
-  { label: "Logs",           href: "/admin/logs",      icon: ScrollText },
-  { label: "Health",         href: "/admin/health",    icon: Activity },
+  { label: "Dashboard",      href: "/admin",                  icon: LayoutDashboard, exact: true },
+  { label: "Agências",       href: "/admin/agencies",         icon: Building2 },
+  { label: "Planos",         href: "/admin/plans",            icon: CreditCard },
+  { label: "Usuários",       href: "/admin/users",            icon: Users },
+  { label: "Tickets",        href: "/admin/tickets",          icon: Ticket },
+  { label: "Faturamento",    href: "/admin/billing",          icon: DollarSign },
+  { label: "Configurações",  href: "/admin/settings",         icon: Settings },
+  { label: "Config Center",  href: "/admin/config",           icon: SlidersHorizontal },
+  { label: "Templates",      href: "/admin/templates",        icon: Mail },
+  { label: "Logs",           href: "/admin/logs",             icon: ScrollText },
+  { label: "Health",         href: "/admin/health",           icon: Activity },
+  { label: "Jobs",           href: "/admin/system/jobs",      icon: Zap },
 ];
 
 const agencyNavItems = [

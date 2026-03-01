@@ -1,8 +1,8 @@
 /** Incremental build identifier — bump on every release. */
-export const BUILD_ID = "0019";
+export const BUILD_ID = "0020";
 
 /** Timestamp of the last release (YYYY-MM-DD HH:mm). */
-export const UPDATED_AT = "2026-03-01 04:00";
+export const UPDATED_AT = "2026-03-01 08:00";
 
 /** Timezone used for UPDATED_AT. */
 export const UPDATED_TZ = "America/Sao_Paulo";
@@ -19,6 +19,15 @@ export interface ChangelogEntry {
  * Maintain at minimum the last 10 entries.
  */
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    id: "0020",
+    at: "2026-03-01 08:00",
+    lines: [
+      "Integration Job Engine: execução + histórico de sincronizações por integração",
+      "Botões Testar/Sincronizar com feedback de toast e Jobs Drawer por card",
+      "Admin jobs dashboard (/admin/system/jobs) para diagnóstico rápido de todas as agências",
+    ],
+  },
   {
     id: "0019",
     at: "2026-03-01 04:00",

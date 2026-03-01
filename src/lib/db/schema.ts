@@ -28,6 +28,8 @@ export type EntityType = "CLIENT" | "DEAL" | "TICKET" | "CONTACT" | "AGENCY" | "
 export type SettingType = "string" | "number" | "boolean" | "json";
 export type IntegrationProvider = "ASAAS" | "GOOGLE_ADS" | "META_ADS" | "GA4" | "OTHER";
 export type IntegrationStatus = "connected" | "expired" | "error" | "revoked" | "disconnected";
+export type JobType = "sync" | "test" | "health_check" | "custom";
+export type JobStatus = "pending" | "running" | "success" | "failed";
 export type TicketStatus = "OPEN" | "IN_PROGRESS" | "WAITING" | "RESOLVED" | "CLOSED";
 export type TicketPriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
 export type TicketType = "SUPPORT" | "FEATURE_REQUEST" | "BUG" | "BILLING" | "OTHER";
@@ -495,6 +497,7 @@ export const integrations = pgTable(
       onDelete: "set null",
     }),
     lastSyncedAt: timestamp("last_synced_at", { mode: "date" }),
+    lastTestedAt: timestamp("last_tested_at", { mode: "date" }),
     lastError: text("last_error"),
     createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
@@ -503,6 +506,36 @@ export const integrations = pgTable(
     index("integrations_agency_provider_idx").on(t.agencyId, t.provider),
     index("integrations_status_idx").on(t.status),
     unique("integrations_agency_provider_unique").on(t.agencyId, t.provider),
+  ]
+);
+
+export const integrationJobs = pgTable(
+  "integration_jobs",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    integrationId: text("integration_id")
+      .notNull()
+      .references(() => integrations.id, { onDelete: "cascade" }),
+    ownerScope: text("owner_scope").notNull().default("agency"),
+    ownerId: text("owner_id").notNull(),
+    provider: text("provider").$type<IntegrationProvider>().notNull(),
+    type: text("type").$type<JobType>().notNull(),
+    status: text("status").$type<JobStatus>().notNull().default("pending"),
+    attempts: integer("attempts").notNull().default(0),
+    maxAttempts: integer("max_attempts").notNull().default(3),
+    lastError: text("last_error"),
+    meta: json("meta"),
+    startedAt: timestamp("started_at", { mode: "date" }),
+    finishedAt: timestamp("finished_at", { mode: "date" }),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("integration_jobs_integration_created_idx").on(t.integrationId, t.createdAt),
+    index("integration_jobs_provider_status_idx").on(t.provider, t.status),
+    index("integration_jobs_owner_idx").on(t.ownerScope, t.ownerId),
   ]
 );
 
@@ -534,6 +567,8 @@ export type UserContext = typeof userContexts.$inferSelect;
 export type Integration = typeof integrations.$inferSelect;
 export type NewIntegration = typeof integrations.$inferInsert;
 export type IntegrationSecret = typeof integrationSecrets.$inferSelect;
+export type IntegrationJob = typeof integrationJobs.$inferSelect;
+export type NewIntegrationJob = typeof integrationJobs.$inferInsert;
 
 // ============================================================
 // MESSAGE TEMPLATES

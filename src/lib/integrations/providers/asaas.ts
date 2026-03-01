@@ -86,6 +86,36 @@ async function _fallbackValidate(
 }
 
 /**
+ * Lightweight connectivity check used by the job engine (test / sync).
+ * Never logs the apiKey.
+ */
+export async function asaasPing(
+  apiKey: string
+): Promise<{ ok: boolean; message: string }> {
+  try {
+    const res = await fetch(`${BASE_URL}/myaccount`, {
+      method: "GET",
+      headers: { access_token: apiKey, "Content-Type": "application/json" },
+    });
+    if (res.status === 401 || res.status === 403) {
+      return { ok: false, message: "API Key inválida ou sem permissão." };
+    }
+    if (!res.ok) {
+      const fb = await fetch(`${BASE_URL}/customers?limit=1`, {
+        method: "GET",
+        headers: { access_token: apiKey },
+      });
+      if (fb.ok) return { ok: true, message: "Conexão Asaas verificada." };
+      return { ok: false, message: `Erro Asaas: HTTP ${res.status}` };
+    }
+    const data = (await res.json()) as AsaasAccountResponse;
+    return { ok: true, message: `Conectado: ${buildAsaasAccountLabel(data)}` };
+  } catch {
+    return { ok: false, message: "Falha ao conectar com o Asaas." };
+  }
+}
+
+/**
  * Gera um label amigável para exibição na UI.
  */
 export function buildAsaasAccountLabel(
