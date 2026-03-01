@@ -7,6 +7,9 @@ import { SuperAdminSidebar } from "@/components/shared/super-admin-sidebar";
 import { AdminHeader } from "@/components/admin/header";
 import { AgencyContextBanner } from "@/components/admin/agency-context-banner";
 import { getActiveContextFromDB } from "@/lib/active-context";
+import { features } from "@/config/features";
+import { navigation } from "@/config/navigation";
+import { WorkspaceShell } from "@/components/workspace/WorkspaceShell";
 
 export default async function AdminLayout({
   children,
@@ -29,6 +32,22 @@ export default async function AdminLayout({
     .from(agencies)
     .orderBy(asc(agencies.name));
 
+  // ── Unified Workspace Shell (feature-flagged, PO only) ─────────────────────
+  if (features.useUnifiedShell) {
+    return (
+      <WorkspaceShell
+        navGroups={navigation.platform}
+        scope={scope}
+        agencies={agenciesList}
+        activeAgencyId={agencyId}
+        activeAgencyName={agencyName}
+      >
+        {children}
+      </WorkspaceShell>
+    );
+  }
+
+  // ── Legacy layout (fallback) ───────────────────────────────────────────────
   return (
     <div className="flex h-screen overflow-hidden">
       <SuperAdminSidebar activeScope={scope} />
@@ -47,3 +66,4 @@ export default async function AdminLayout({
     </div>
   );
 }
+

@@ -1,8 +1,8 @@
 /** Incremental build identifier — bump on every release. */
-export const BUILD_ID = "0022";
+export const BUILD_ID = "0023";
 
 /** Timestamp of the last release (YYYY-MM-DD HH:mm). */
-export const UPDATED_AT = "2026-03-01 12:00";
+export const UPDATED_AT = "2026-03-01 14:00";
 
 /** Timezone used for UPDATED_AT. */
 export const UPDATED_TZ = "America/Sao_Paulo";
@@ -19,6 +19,15 @@ export interface ChangelogEntry {
  * Maintain at minimum the last 10 entries.
  */
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    id: "0023",
+    at: "2026-03-01 14:00",
+    lines: [
+      "Unified Workspace Shell (PO v1): sidebar agrupado e colapsável via feature flag",
+      "Sidebar agrupado com grupos colapsáveis, tooltips e destaque de rota ativa",
+      "Layout preparado para Agency/Client (feature-flagged, sem quebrar rotas existentes)",
+    ],
+  },
   {
     id: "0022",
     at: "2026-03-01 12:00",
