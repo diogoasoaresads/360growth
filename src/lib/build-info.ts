@@ -1,8 +1,8 @@
 /** Incremental build identifier — bump on every release. */
-export const BUILD_ID = "0021";
+export const BUILD_ID = "0022";
 
 /** Timestamp of the last release (YYYY-MM-DD HH:mm). */
-export const UPDATED_AT = "2026-03-01 10:00";
+export const UPDATED_AT = "2026-03-01 12:00";
 
 /** Timezone used for UPDATED_AT. */
 export const UPDATED_TZ = "America/Sao_Paulo";
@@ -19,6 +19,15 @@ export interface ChangelogEntry {
  * Maintain at minimum the last 10 entries.
  */
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    id: "0022",
+    at: "2026-03-01 12:00",
+    lines: [
+      "Fix: sincronização DB/migrations (Drizzle) para evitar mismatch de schema em produção",
+      "Migration 0009: rename stripe→asaas billing columns + add current_period_end (idempotente)",
+      "Ferramenta admin /admin/system/db-migrate para rodar migrations com segurança (SUPER_ADMIN-only)",
+    ],
+  },
   {
     id: "0021",
     at: "2026-03-01 10:00",

@@ -57,7 +57,8 @@ export type AuditAction =
   | "integration_job_started"
   | "integration_job_finished"
   | "integration_account_selected"
-  | "google_ads_synced";
+  | "google_ads_synced"
+  | "db_migration_run";
 
 export async function createAuditLog(params: {
   userId: string;

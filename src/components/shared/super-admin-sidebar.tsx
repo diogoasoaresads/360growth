@@ -21,6 +21,7 @@ import {
   Mail,
   Activity,
   Zap,
+  DatabaseZap,
 } from "lucide-react";
 
 const adminNavItems = [
@@ -36,6 +37,7 @@ const adminNavItems = [
   { label: "Logs",           href: "/admin/logs",             icon: ScrollText },
   { label: "Health",         href: "/admin/health",           icon: Activity },
   { label: "Jobs",           href: "/admin/system/jobs",      icon: Zap },
+  { label: "DB Migrate",     href: "/admin/system/db-migrate", icon: DatabaseZap },
 ];
 
 const agencyNavItems = [

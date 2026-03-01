@@ -64,6 +64,13 @@
       "when": 1772431200000,
       "tag": "0008_add_ad_accounts",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1772438400000,
+      "tag": "0009_fix_agencies_billing_columns",
+      "breakpoints": true
     }
   ]
 }
