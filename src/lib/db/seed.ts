@@ -17,6 +17,7 @@ import {
   ticketMessages,
   sessions,
   accounts,
+  userContexts,
 } from "./schema";
 import type { PlanFeatures, BillingStatus } from "./schema";
 import { hash } from "bcryptjs";
@@ -760,6 +761,153 @@ async function seed() {
       });
   }
 
+  // ── QA Demo: Agência Demo ────────────────────────────────────────────────────
+  console.log("🚀 Criando dados de QA (Agência Demo)...");
+
+  const demoPlan = planMap["growth"]!;
+
+  const [agenciaDemo] = await db
+    .insert(agencies)
+    .values({
+      name: "Agência Demo",
+      slug: "agencia-demo",
+      planId: demoPlan.id,
+      agencyStatus: "active",
+      active: true,
+      billingStatus: "active",
+      maxMembers: demoPlan.maxUsers,
+      maxClients: demoPlan.maxClients,
+    })
+    .returning();
+
+  // AGENCY_ADMIN da Agência Demo
+  const agencyDemoPw = await hash("Agency@123456", 12);
+  const [agencyAdminDemo] = await db
+    .insert(users)
+    .values({
+      name: "Admin Demo",
+      email: "agency@demo.com",
+      passwordHash: agencyDemoPw,
+      role: "AGENCY_ADMIN",
+      userStatus: "active",
+      emailVerified: new Date(),
+    })
+    .returning();
+
+  await db.insert(agencyUsers).values({
+    agencyId: agenciaDemo!.id,
+    userId: agencyAdminDemo!.id,
+    role: "AGENCY_ADMIN",
+  });
+
+  // Contexto do AGENCY_ADMIN (scope=agency)
+  await db
+    .insert(userContexts)
+    .values({
+      userId: agencyAdminDemo!.id,
+      activeScope: "agency",
+      activeAgencyId: agenciaDemo!.id,
+    })
+    .onConflictDoUpdate({
+      target: userContexts.userId,
+      set: {
+        activeScope: "agency",
+        activeAgencyId: agenciaDemo!.id,
+        updatedAt: new Date(),
+      },
+    });
+
+  // Usuário CLIENT para o portal
+  const clientPw = await hash("Client@123456", 12);
+  const [portalUser] = await db
+    .insert(users)
+    .values({
+      name: "Cliente Demo",
+      email: "portal@demo.com",
+      passwordHash: clientPw,
+      role: "CLIENT",
+      userStatus: "active",
+      emailVerified: new Date(),
+    })
+    .returning();
+
+  // Cliente no CRM da Agência Demo (vinculado ao usuário de portal)
+  const [clienteDemo] = await db
+    .insert(clients)
+    .values({
+      agencyId: agenciaDemo!.id,
+      name: "Cliente Demo LTDA",
+      email: "cliente@demo.com",
+      company: "Cliente Demo LTDA",
+      status: "active",
+      phone: "(11) 99999-0000",
+      userId: portalUser!.id,
+    })
+    .returning();
+
+  // Contexto do CLIENT (scope=client)
+  await db
+    .insert(userContexts)
+    .values({
+      userId: portalUser!.id,
+      activeScope: "client",
+      activeClientId: clienteDemo!.id,
+    })
+    .onConflictDoUpdate({
+      target: userContexts.userId,
+      set: {
+        activeScope: "client",
+        activeClientId: clienteDemo!.id,
+        updatedAt: new Date(),
+      },
+    });
+
+  // 1 deal no pipeline
+  await db.insert(deals).values({
+    agencyId: agenciaDemo!.id,
+    clientId: clienteDemo!.id,
+    title: "Projeto de Marketing Digital",
+    value: "5000.00",
+    stage: "PROPOSAL",
+    description: "Proposta de gerenciamento de redes sociais e campanhas pagas.",
+    probability: 60,
+    dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    responsibleId: agencyAdminDemo!.id,
+  });
+
+  // 1 ticket de suporte
+  const [demoTicket] = await db
+    .insert(tickets)
+    .values({
+      agencyId: agenciaDemo!.id,
+      clientId: clienteDemo!.id,
+      subject: "Dúvida sobre relatório mensal de campanhas",
+      status: "OPEN",
+      priority: "MEDIUM",
+      type: "SUPPORT",
+      createdBy: agencyAdminDemo!.id,
+    })
+    .returning();
+
+  await db.insert(ticketMessages).values({
+    ticketId: demoTicket!.id,
+    userId: agencyAdminDemo!.id,
+    content:
+      "Olá! Gostaria de entender melhor como interpretar os dados do relatório mensal de campanhas. Qual métrica devo usar para avaliar o ROI?",
+    isInternal: false,
+  });
+
+  // 1 atividade/nota
+  await db.insert(activities).values({
+    agencyId: agenciaDemo!.id,
+    entityType: "CLIENT",
+    entityId: clienteDemo!.id,
+    userId: agencyAdminDemo!.id,
+    type: "NOTE",
+    description:
+      "Reunião de alinhamento realizada. Cliente interessado em expandir campanhas para o Google Ads no próximo trimestre.",
+  });
+
   // ── Summary ─────────────────────────────────────────────────────────────────
   console.log(`
 ✅ Seed completo!
@@ -767,19 +915,23 @@ async function seed() {
 📊 Dados criados:
    • ${PLAN_DATA.length} planos (Starter, Growth, Pro, Enterprise)
    • 1 Super Admin
-   • ${AGENCY_DATA.length} agências
-   • ${AGENCY_DATA.reduce((s, a) => s + 1 + a.memberNames.length, 0)} usuários de agência
-   • ${Object.values(clientsByAgency).reduce((s, arr) => s + arr.length, 0)} clientes
-   • ${createdTickets.length} tickets com mensagens
+   • ${AGENCY_DATA.length} agências + 1 Agência Demo (QA)
+   • ${AGENCY_DATA.reduce((s, a) => s + 1 + a.memberNames.length, 0)} usuários de agência + 2 QA (agency@demo.com, portal@demo.com)
+   • ${Object.values(clientsByAgency).reduce((s, arr) => s + arr.length, 0)} clientes + 1 Cliente Demo LTDA
+   • ${createdTickets.length} tickets com mensagens + 1 ticket QA
    • ${logEntries.length} audit logs
    • ${DEFAULT_SETTINGS.length} configurações
 
 🔑 Credenciais de acesso:
-   Super Admin  → admin@360growth.com       / Admin@123456
-   Acme Digital → admin@acme-digital.com    / Agency@123456
-   WebPro       → admin@webpro.com          / Agency@123456
-   StartUp Lab  → admin@startup-lab.com     / Agency@123456
-   Creative     → admin@creative-house.com  / Agency@123456
+   Super Admin   → admin@360growth.com       / Admin@123456
+   Acme Digital  → admin@acme-digital.com    / Agency@123456
+   WebPro        → admin@webpro.com          / Agency@123456
+   StartUp Lab   → admin@startup-lab.com     / Agency@123456
+   Creative      → admin@creative-house.com  / Agency@123456
+
+🧪 QA Demo:
+   Agência Admin → agency@demo.com           / Agency@123456
+   Portal Client → portal@demo.com           / Client@123456
   `);
 }
 

@@ -1,8 +1,8 @@
 /** Incremental build identifier — bump on every release. */
-export const BUILD_ID = "0018";
+export const BUILD_ID = "0019";
 
 /** Timestamp of the last release (YYYY-MM-DD HH:mm). */
-export const UPDATED_AT = "2026-03-01 00:30";
+export const UPDATED_AT = "2026-03-01 04:00";
 
 /** Timezone used for UPDATED_AT. */
 export const UPDATED_TZ = "America/Sao_Paulo";
@@ -19,6 +19,15 @@ export interface ChangelogEntry {
  * Maintain at minimum the last 10 entries.
  */
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    id: "0019",
+    at: "2026-03-01 04:00",
+    lines: [
+      "Integration Framework v1: conectar, trocar chave e desconectar integrações direto no sistema (sem env por cliente)",
+      "Tela de integrações por agência (Asaas ativo + Google Ads/Meta Ads/GA4 em breve) com criptografia AES-256-GCM",
+      "Seed QA com Agência Demo + Cliente Demo LTDA + usuários prontos para teste (agency@demo.com / portal@demo.com)",
+    ],
+  },
   {
     id: "0018",
     at: "2026-03-01 00:30",
