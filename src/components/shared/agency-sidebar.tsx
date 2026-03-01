@@ -12,6 +12,7 @@ import {
   TicketIcon,
   BarChart3,
   Settings,
+  Plug,
   ChevronRight,
   ChevronDown,
 } from "lucide-react";
@@ -49,6 +50,11 @@ const navItems: NavItem[] = [
     label: "Relatórios",
     href: "/agency/reports",
     icon: BarChart3,
+  },
+  {
+    label: "Integrações",
+    href: "/agency/integrations",
+    icon: Plug,
   },
   {
     label: "Configurações",

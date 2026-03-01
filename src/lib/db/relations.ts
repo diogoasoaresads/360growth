@@ -15,6 +15,7 @@ import {
   plans,
   integrations,
   integrationSecrets,
+  integrationJobs,
 } from "./schema";
 
 export const usersRelations = relations(users, ({ many }) => ({
@@ -150,7 +151,7 @@ export const auditLogsRelations = relations(auditLogs, ({ one }) => ({
   }),
 }));
 
-export const integrationsRelations = relations(integrations, ({ one }) => ({
+export const integrationsRelations = relations(integrations, ({ one, many }) => ({
   agency: one(agencies, {
     fields: [integrations.agencyId],
     references: [agencies.id],
@@ -159,6 +160,7 @@ export const integrationsRelations = relations(integrations, ({ one }) => ({
     fields: [integrations.secretId],
     references: [integrationSecrets.id],
   }),
+  jobs: many(integrationJobs),
 }));
 
 export const integrationSecretsRelations = relations(
@@ -167,3 +169,10 @@ export const integrationSecretsRelations = relations(
     integrations: many(integrations),
   })
 );
+
+export const integrationJobsRelations = relations(integrationJobs, ({ one }) => ({
+  integration: one(integrations, {
+    fields: [integrationJobs.integrationId],
+    references: [integrations.id],
+  }),
+}));

@@ -48,7 +48,14 @@ export type AuditAction =
   | "client_portal_password_reset"
   | "client_portal_access_revoked"
   | "stripe_webhook_received"
-  | "subscription_created";
+  | "subscription_created"
+  | "integration_connected"
+  | "integration_rotated"
+  | "integration_disconnected"
+  | "integration_failed"
+  | "integration_job_created"
+  | "integration_job_started"
+  | "integration_job_finished";
 
 export async function createAuditLog(params: {
   userId: string;

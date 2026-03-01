@@ -43,6 +43,20 @@
       "when": 1772347200000,
       "tag": "0005_add_audit_logs_composite_index",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1772402400000,
+      "tag": "0006_add_integrations",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1772416800000,
+      "tag": "0007_add_integration_jobs",
+      "breakpoints": true
     }
   ]
 }
