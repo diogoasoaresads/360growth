@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { tickets, clients } from "@/lib/db/schema";
+import { tickets, clients, userContexts } from "@/lib/db/schema";
 import { eq, and, count } from "drizzle-orm";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -11,9 +11,9 @@ export const metadata = {
   title: "Dashboard | Portal do Cliente",
 };
 
-async function getClientStats(userId: string) {
+async function getClientStats(clientId: string) {
   const client = await db.query.clients.findFirst({
-    where: eq(clients.userId, userId),
+    where: eq(clients.id, clientId),
   });
 
   if (!client) return null;
@@ -39,7 +39,26 @@ async function getClientStats(userId: string) {
 
 export default async function PortalDashboard() {
   const session = await auth();
-  const stats = await getClientStats(session!.user.id);
+
+  // Resolve the clientId: for SUPER_ADMIN use activeClientId from user_contexts,
+  // for CLIENT look up by userId (portal layout already validates both paths).
+  let clientId: string | null = null;
+  if (session!.user.role === "SUPER_ADMIN") {
+    const [ctx] = await db
+      .select({ clientId: userContexts.activeClientId })
+      .from(userContexts)
+      .where(eq(userContexts.userId, session!.user.id))
+      .limit(1);
+    clientId = ctx?.clientId ?? null;
+  } else {
+    const clientRecord = await db.query.clients.findFirst({
+      where: eq(clients.userId, session!.user.id),
+      columns: { id: true },
+    });
+    clientId = clientRecord?.id ?? null;
+  }
+
+  const stats = clientId ? await getClientStats(clientId) : null;
 
   if (!stats) {
     return (

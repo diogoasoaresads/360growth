@@ -1,4 +1,5 @@
 import { auth } from "@/lib/auth";
+import { getActiveAgencyIdOrThrow } from "@/lib/active-context";
 import { db } from "@/lib/db";
 import { clients, deals, tickets } from "@/lib/db/schema";
 import { count, eq, and } from "drizzle-orm";
@@ -45,9 +46,11 @@ const DEAL_STAGES = [
 
 export default async function AgencyDashboard() {
   const session = await auth();
-  const agencyId = session?.user.agencyId;
 
-  if (!agencyId) {
+  let agencyId: string;
+  try {
+    agencyId = await getActiveAgencyIdOrThrow();
+  } catch {
     return (
       <div className="p-8">
         <p className="text-muted-foreground">Agência não configurada.</p>
