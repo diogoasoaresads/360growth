@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { signIn, getSession } from "next-auth/react";
+import { signIn } from "next-auth/react";
 import { z } from "zod";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -42,35 +42,14 @@ const loginSchema = z.object({
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function getSafeReturnTo(returnTo: string | null, role: string): string {
-  function fallback() {
-    switch (role) {
-      case "SUPER_ADMIN": return "/admin";
-      case "AGENCY_ADMIN":
-      case "AGENCY_MEMBER": return "/agency/dashboard";
-      case "CLIENT": return "/portal/dashboard";
-      default: return "/";
-    }
-  }
-
-  if (!returnTo) return fallback();
-  if (!returnTo.startsWith("/") || returnTo.startsWith("//")) return fallback();
-  if (/^\/[a-zA-Z][a-zA-Z0-9+\-.]*:/.test(returnTo)) return fallback();
-
-  // Role-path guard: avoid sending the user somewhere they'll be bounced from
-  if (returnTo.startsWith("/admin") && role !== "SUPER_ADMIN") return fallback();
-  if (
-    returnTo.startsWith("/agency") &&
-    role !== "SUPER_ADMIN" &&
-    role !== "AGENCY_ADMIN" &&
-    role !== "AGENCY_MEMBER"
-  ) return fallback();
-  if (
-    returnTo.startsWith("/portal") &&
-    role !== "SUPER_ADMIN" &&
-    role !== "CLIENT"
-  ) return fallback();
-
+/**
+ * Validate returnTo is a safe internal path.
+ * Does NOT validate role — middleware handles unauthorized access naturally.
+ */
+function getSafeReturnTo(returnTo: string | null): string {
+  if (!returnTo) return "/";
+  if (!returnTo.startsWith("/") || returnTo.startsWith("//")) return "/";
+  if (/^\/[a-zA-Z][a-zA-Z0-9+\-.]*:/.test(returnTo)) return "/";
   return returnTo;
 }
 
@@ -129,7 +108,6 @@ export default function LoginForm({ siteContext, qaCreds }: LoginFormProps) {
 
     setIsLoading(true);
     try {
-      // Persist remembered email before navigating
       try {
         if (rememberEmail) {
           localStorage.setItem(REMEMBER_KEY, email);
@@ -151,11 +129,10 @@ export default function LoginForm({ siteContext, qaCreds }: LoginFormProps) {
         return;
       }
 
-      // Fetch session to validate role before redirect
-      const session = await getSession();
-      const role = session?.user?.role ?? "";
-      const target = getSafeReturnTo(returnTo, role);
-      window.location.href = target;
+      // Navigate to safe returnTo, or "/" (root page redirects by role).
+      // We avoid getSession() here — JWT propagation timing can return null
+      // immediately after signIn, causing a spurious redirect back to /login.
+      window.location.href = getSafeReturnTo(returnTo);
     } catch {
       setError("Erro inesperado. Tente novamente.");
     } finally {
@@ -165,7 +142,7 @@ export default function LoginForm({ siteContext, qaCreds }: LoginFormProps) {
 
   return (
     <div className="space-y-6">
-      {/* Origin badge — shown when coming from a public site */}
+      {/* Origin badge */}
       {siteContext && (
         <div className="flex items-center gap-2 px-3 py-2 rounded-md bg-violet-50 border border-violet-200 dark:bg-violet-900/20 dark:border-violet-800 text-sm text-violet-700 dark:text-violet-300">
           <Globe className="h-4 w-4 shrink-0" />
@@ -284,7 +261,7 @@ export default function LoginForm({ siteContext, qaCreds }: LoginFormProps) {
         </Button>
       </form>
 
-      {/* QA fast-login — server only sends this when QA_TOOLS_ENABLED=true */}
+      {/* QA fast-login */}
       {qaCreds && (
         <div className="space-y-2 pt-1 border-t">
           <p className="text-xs text-center text-muted-foreground font-medium uppercase tracking-widest pt-1">
@@ -322,6 +299,12 @@ export default function LoginForm({ siteContext, qaCreds }: LoginFormProps) {
               Cliente
             </Button>
           </div>
+          <p className="text-xs text-center text-muted-foreground">
+            Sem dados demo?{" "}
+            <Link href="/setup" className="text-primary hover:underline">
+              Inicializar
+            </Link>
+          </p>
         </div>
       )}
 

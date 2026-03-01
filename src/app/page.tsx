@@ -10,7 +10,7 @@ export default async function HomePage() {
 
   switch (session.user.role) {
     case "SUPER_ADMIN":
-      redirect("/super-admin/dashboard");
+      redirect("/admin");
     case "AGENCY_ADMIN":
     case "AGENCY_MEMBER":
       redirect("/agency/dashboard");
