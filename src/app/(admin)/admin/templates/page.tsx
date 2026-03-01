@@ -9,6 +9,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Mail } from "lucide-react";
 import { TemplateEditor } from "./template-editor";
+import { PageContainer } from "@/components/workspace/PageContainer";
 
 export const metadata = { title: "Templates de Mensagem | Admin" };
 
@@ -17,14 +18,10 @@ export default async function TemplatesPage() {
   const templates = result.success ? result.data : [];
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Templates de Mensagem</h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          Templates da plataforma — podem ser sobrescritos por agência.
-        </p>
-      </div>
-
+    <PageContainer
+      title="Templates de Mensagem"
+      description="Templates da plataforma — podem ser sobrescritos por agência."
+    >
       {templates.length === 0 && (
         <Card>
           <CardContent className="py-8 text-center text-muted-foreground text-sm">
@@ -61,6 +58,6 @@ export default async function TemplatesPage() {
           </Card>
         ))}
       </div>
-    </div>
+    </PageContainer>
   );
 }

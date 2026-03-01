@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getSettings } from "@/lib/actions/admin/settings";
 import { SettingsForm } from "./settings-form";
+import { PageContainer } from "@/components/workspace/PageContainer";
 
 export const metadata: Metadata = {
   title: "Configurações — 360growth Admin",
@@ -41,15 +42,11 @@ export default async function SettingsPage() {
       };
 
   return (
-    <div className="flex-1 space-y-6 p-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Configurações</h1>
-        <p className="text-sm text-muted-foreground">
-          Configurações globais da plataforma 360growth.
-        </p>
-      </div>
-
+    <PageContainer
+      title="Configurações"
+      description="Configurações globais da plataforma 360growth."
+    >
       <SettingsForm initialSettings={initialSettings} />
-    </div>
+    </PageContainer>
   );
 }

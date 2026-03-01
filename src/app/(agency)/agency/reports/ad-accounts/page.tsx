@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowLeft, RefreshCw } from "lucide-react";
 import type { Metadata } from "next";
+import { PageContainer } from "@/components/workspace/PageContainer";
 
 export const metadata: Metadata = {
   title: "Contas de Anúncios | Relatórios",
@@ -51,32 +52,26 @@ export default async function AdAccountsPage() {
   const activeCampaigns = campaigns.filter((c) => c.status === "ENABLED").length;
 
   return (
-    <div className="p-8 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" asChild>
-            <Link href="/agency/reports">
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">
-              Contas de Anúncios
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              Dados sincronizados via Google Ads
-            </p>
+    <div className="p-6">
+      <PageContainer
+        title="Contas de Anúncios"
+        description="Dados sincronizados via Google Ads"
+        actions={
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" asChild>
+              <Link href="/agency/reports">
+                <ArrowLeft className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/agency/integrations">
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Gerenciar integração
+              </Link>
+            </Button>
           </div>
-        </div>
-        <Button variant="outline" size="sm" asChild>
-          <Link href="/agency/integrations">
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Gerenciar integração
-          </Link>
-        </Button>
-      </div>
-
+        }
+      >
       {/* KPIs */}
       {accounts.length > 0 && (
         <div className="grid gap-4 md:grid-cols-3">
@@ -97,6 +92,7 @@ export default async function AdAccountsPage() {
 
       {/* Client table */}
       <AdAccountsClient accounts={accountsWithCampaigns} />
+      </PageContainer>
     </div>
   );
 }

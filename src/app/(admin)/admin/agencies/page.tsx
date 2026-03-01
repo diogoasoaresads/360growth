@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { PageHeader } from "@/components/admin/page-header";
 import { AgenciesDataTable } from "@/components/admin/agencies/agencies-data-table";
 import { getAgencies } from "@/lib/actions/admin/agencies";
 import { Plus } from "lucide-react";
+import { PageContainer } from "@/components/workspace/PageContainer";
 
 export const metadata = { title: "Agências — 360growth Admin" };
 
@@ -29,24 +29,23 @@ export default async function AgenciesPage({ searchParams }: Props) {
   const total = result.success ? result.data.total : 0;
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Agências"
-        description={`${total} agência${total !== 1 ? "s" : ""} cadastrada${total !== 1 ? "s" : ""}`}
-      >
+    <PageContainer
+      title="Agências"
+      description={`${total} agência${total !== 1 ? "s" : ""} cadastrada${total !== 1 ? "s" : ""}`}
+      actions={
         <Button asChild>
           <Link href="/admin/agencies/new">
             <Plus className="h-4 w-4 mr-2" />
             Nova agência
           </Link>
         </Button>
-      </PageHeader>
-
+      }
+    >
       {!result.success && (
         <p className="text-destructive text-sm">{result.error}</p>
       )}
 
       <AgenciesDataTable data={data} total={total} />
-    </div>
+    </PageContainer>
   );
 }

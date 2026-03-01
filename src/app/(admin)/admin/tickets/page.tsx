@@ -4,6 +4,7 @@ import { DataTable } from "@/components/admin/data-table/data-table";
 import { ticketColumns } from "./columns";
 import { Badge } from "@/components/ui/badge";
 import type { TicketStatus } from "@/lib/db/schema";
+import { PageContainer } from "@/components/workspace/PageContainer";
 
 export const metadata: Metadata = { title: "Tickets de Suporte" };
 
@@ -56,26 +57,22 @@ export default async function AdminTicketsPage({ searchParams }: Props) {
 
   const ACTIVE_STATUSES: TicketStatus[] = ["OPEN", "IN_PROGRESS", "WAITING"];
 
-  return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Tickets de Suporte</h1>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {ACTIVE_STATUSES.map((s) => {
-              const cnt = statusCounts[s] ?? 0;
-              if (!cnt) return null;
-              return (
-                <Badge key={s} variant={STATUS_BADGE_VARIANTS[s]} className="text-xs">
-                  {cnt} {STATUS_LABELS[s].toLowerCase()}
-                </Badge>
-              );
-            })}
-          </div>
-        </div>
-      </div>
+  const statusBadges = ACTIVE_STATUSES.map((s) => {
+    const cnt = statusCounts[s] ?? 0;
+    if (!cnt) return null;
+    return (
+      <Badge key={s} variant={STATUS_BADGE_VARIANTS[s]} className="text-xs">
+        {cnt} {STATUS_LABELS[s].toLowerCase()}
+      </Badge>
+    );
+  }).filter(Boolean);
 
+  return (
+    <PageContainer
+      title="Tickets de Suporte"
+      description="Gerencie os tickets de suporte das agências."
+      toolbar={statusBadges.length > 0 ? <div className="flex flex-wrap gap-2">{statusBadges}</div> : undefined}
+    >
       {/* DataTable */}
       <DataTable
         columns={ticketColumns}
@@ -110,6 +107,6 @@ export default async function AdminTicketsPage({ searchParams }: Props) {
           description: "Os tickets das agências aparecerão aqui.",
         }}
       />
-    </div>
+    </PageContainer>
   );
 }

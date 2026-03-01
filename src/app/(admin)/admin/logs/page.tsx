@@ -4,6 +4,7 @@ import { getAuditLogs } from "@/lib/actions/admin/logs";
 import { ACTION_CATEGORIES } from "@/lib/log-utils";
 import { LogsTable } from "./logs-table";
 import { LogsToolbar } from "./logs-toolbar";
+import { PageContainer } from "@/components/workspace/PageContainer";
 
 export const metadata: Metadata = {
   title: "Logs de Auditoria — 360growth Admin",
@@ -69,18 +70,10 @@ export default async function LogsPage({ searchParams }: Props) {
   const totalPages = result.success ? result.data.totalPages : 0;
 
   return (
-    <div className="flex-1 space-y-6 p-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Logs de Auditoria</h1>
-        <p className="text-sm text-muted-foreground">
-          Histórico de todas as ações realizadas na plataforma.
-          {totalCount > 0 && (
-            <span className="ml-1 font-medium">{totalCount.toLocaleString("pt-BR")} registros.</span>
-          )}
-        </p>
-      </div>
-
+    <PageContainer
+      title="Logs de Auditoria"
+      description={`Histórico de todas as ações realizadas na plataforma.${totalCount > 0 ? ` ${totalCount.toLocaleString("pt-BR")} registros.` : ""}`}
+    >
       {/* Toolbar (client) */}
       <Suspense fallback={null}>
         <LogsToolbar
@@ -103,6 +96,6 @@ export default async function LogsPage({ searchParams }: Props) {
         totalPages={totalPages}
         sortOrder={sortOrder}
       />
-    </div>
+    </PageContainer>
   );
 }

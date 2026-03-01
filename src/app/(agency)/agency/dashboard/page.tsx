@@ -5,6 +5,7 @@ import { count, eq, and } from "drizzle-orm";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Users, KanbanSquare, TicketIcon, TrendingUp } from "lucide-react";
+import { PageContainer } from "@/components/workspace/PageContainer";
 
 export const metadata = {
   title: "Dashboard | Agência",
@@ -57,14 +58,11 @@ export default async function AgencyDashboard() {
   const stats = await getAgencyStats(agencyId);
 
   return (
-    <div className="p-8 space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground mt-1">
-          Bem-vindo de volta, {session?.user.name}
-        </p>
-      </div>
-
+    <div className="p-6">
+      <PageContainer
+        title="Dashboard"
+        description={`Bem-vindo de volta, ${session?.user.name ?? ""}`}
+      >
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
@@ -144,6 +142,7 @@ export default async function AgencyDashboard() {
           </p>
         </CardContent>
       </Card>
+      </PageContainer>
     </div>
   );
 }

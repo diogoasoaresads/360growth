@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import type { DealStage } from "@/lib/db/schema";
+import { PageContainer } from "@/components/workspace/PageContainer";
 
 export const metadata = {
   title: "Pipeline CRM | Agência",
@@ -52,18 +53,17 @@ export default async function PipelinePage() {
   );
 
   return (
-    <div className="p-8 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Pipeline CRM</h1>
-          <p className="text-muted-foreground mt-1">Gerencie seus negócios em andamento</p>
-        </div>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Novo Negócio
-        </Button>
-      </div>
-
+    <div className="p-6">
+      <PageContainer
+        title="Pipeline CRM"
+        description="Gerencie seus negócios em andamento"
+        actions={
+          <Button>
+            <Plus className="mr-2 h-4 w-4" />
+            Novo Negócio
+          </Button>
+        }
+      >
       {/* Kanban Board */}
       <div className="flex gap-4 overflow-x-auto pb-4">
         {STAGES.map((stage) => {
@@ -119,6 +119,7 @@ export default async function PipelinePage() {
           );
         })}
       </div>
+      </PageContainer>
     </div>
   );
 }

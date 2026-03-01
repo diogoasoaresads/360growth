@@ -44,7 +44,6 @@ export function ContextSwitcherClient({
         await setActiveContext("platform");
         toast.success("Contexto: Plataforma");
         router.push("/admin");
-        router.refresh();
       } catch {
         toast.error("Erro ao trocar contexto.");
       }
@@ -57,7 +56,6 @@ export function ContextSwitcherClient({
         await setActiveContext("agency", agency.id);
         toast.success(`Contexto: ${agency.name}`);
         router.push("/agency/dashboard");
-        router.refresh();
       } catch {
         toast.error("Erro ao trocar contexto.");
       }

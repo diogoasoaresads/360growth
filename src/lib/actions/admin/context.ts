@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import { db } from "@/lib/db";
 import { userContexts, agencies } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 import type { ActiveScope } from "@/lib/db/schema";
 import {
   SCOPE_COOKIE,
@@ -60,4 +61,8 @@ export async function setActiveContext(
   } else {
     store.delete(AGENCY_ID_COOKIE);
   }
+
+  // Bust all layout caches so the next navigation (push/replace) always reads
+  // fresh data from the DB — prevents stale scope showing up in layouts.
+  revalidatePath("/", "layout");
 }

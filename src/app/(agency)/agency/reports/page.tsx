@@ -14,6 +14,7 @@ import {
   Clock,
 } from "lucide-react";
 import type { DealStage, TicketStatus, TicketPriority } from "@/lib/db/schema";
+import { PageContainer } from "@/components/workspace/PageContainer";
 
 export const metadata = {
   title: "Relatórios | Agência",
@@ -134,14 +135,11 @@ export default async function ReportsPage() {
   const data = await getReportData(agencyId);
 
   return (
-    <div className="p-8 space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Relatórios</h1>
-        <p className="text-muted-foreground mt-1">
-          Visão geral do desempenho da sua agência
-        </p>
-      </div>
-
+    <div className="p-6">
+      <PageContainer
+        title="Relatórios"
+        description="Visão geral do desempenho da sua agência"
+      >
       {/* KPI Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
@@ -379,6 +377,7 @@ export default async function ReportsPage() {
           </CardContent>
         </Card>
       </div>
+      </PageContainer>
     </div>
   );
 }
