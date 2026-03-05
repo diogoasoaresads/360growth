@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { clients, deals, tickets, contacts } from "@/lib/db/schema";
-import { count, eq, and, sum } from "drizzle-orm";
+import { count, eq, and, sum, gte } from "drizzle-orm";
 import { getActiveAgencyIdOrThrow } from "@/lib/active-context";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +15,9 @@ import {
 } from "lucide-react";
 import type { DealStage, TicketStatus, TicketPriority } from "@/lib/db/schema";
 import { PageContainer } from "@/components/workspace/PageContainer";
+import { ReportFilters } from "@/components/reports/ReportFilters";
+import { PrintReportButton } from "@/components/reports/PrintReportButton";
+import { subDays, startOfMonth } from "date-fns";
 
 export const metadata = {
   title: "Relatórios | Agência",
@@ -44,21 +47,38 @@ const TICKET_PRIORITIES: { key: TicketPriority; label: string; variant: "default
   { key: "URGENT", label: "Urgente", variant: "destructive" },
 ];
 
-async function getReportData(agencyId: string) {
+async function getReportData(agencyId: string, range: string = "all") {
+  let startDate: Date | undefined;
+  const now = new Date();
+
+  switch (range) {
+    case "7d": startDate = subDays(now, 7); break;
+    case "30d": startDate = subDays(now, 30); break;
+    case "90d": startDate = subDays(now, 90); break;
+    case "this_month": startDate = startOfMonth(now); break;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const baseFilter = (table: any) => {
+    const filters = [eq(table.agencyId, agencyId)];
+    if (startDate) filters.push(gte(table.createdAt, startDate));
+    return and(...filters);
+  };
+
   const [clientCount] = await db
     .select({ count: count() })
     .from(clients)
-    .where(eq(clients.agencyId, agencyId));
+    .where(baseFilter(clients));
 
   const [activeClientCount] = await db
     .select({ count: count() })
     .from(clients)
-    .where(and(eq(clients.agencyId, agencyId), eq(clients.status, "active")));
+    .where(and(baseFilter(clients), eq(clients.status, "active")));
 
   const [contactCount] = await db
     .select({ count: count() })
     .from(contacts)
-    .where(eq(contacts.agencyId, agencyId));
+    .where(baseFilter(contacts));
 
   // Deals by stage
   const dealsByStage = await db
@@ -68,7 +88,7 @@ async function getReportData(agencyId: string) {
       totalValue: sum(deals.value),
     })
     .from(deals)
-    .where(eq(deals.agencyId, agencyId))
+    .where(baseFilter(deals))
     .groupBy(deals.stage);
 
   const wonDeals = dealsByStage.find((d) => d.stage === "CLOSED_WON");
@@ -84,14 +104,14 @@ async function getReportData(agencyId: string) {
   const ticketsByStatus = await db
     .select({ status: tickets.status, count: count() })
     .from(tickets)
-    .where(eq(tickets.agencyId, agencyId))
+    .where(baseFilter(tickets))
     .groupBy(tickets.status);
 
   // Tickets by priority
   const ticketsByPriority = await db
     .select({ priority: tickets.priority, count: count() })
     .from(tickets)
-    .where(eq(tickets.agencyId, agencyId))
+    .where(baseFilter(tickets))
     .groupBy(tickets.priority);
 
   const totalTickets = ticketsByStatus.reduce((s, t) => s + t.count, 0);
@@ -130,254 +150,267 @@ function formatCurrency(value: number) {
   });
 }
 
-export default async function ReportsPage() {
+export default async function ReportsPage({ searchParams }: { searchParams: { range?: string } }) {
   const agencyId = await getActiveAgencyIdOrThrow();
-  const data = await getReportData(agencyId);
+  const data = await getReportData(agencyId, searchParams.range);
 
   return (
     <div className="p-6">
+      <style dangerouslySetInnerHTML={{
+        __html: `
+        @media print {
+          .print\\:hidden { display: none !important; }
+          main { padding: 0 !important; }
+          .card { border: none !important; box-shadow: none !important; }
+          body { background: white !important; }
+        }
+      `}} />
       <PageContainer
         title="Relatórios"
         description="Visão geral do desempenho da sua agência"
+        actions={<PrintReportButton />}
       >
-      {/* KPI Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Clientes</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{data.clients.total}</div>
-            <p className="text-xs text-muted-foreground">
-              {data.clients.active} ativos · {data.clients.total - data.clients.active} inativos
-            </p>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Receita Fechada</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(data.deals.wonValue)}</div>
-            <p className="text-xs text-muted-foreground">
-              {data.deals.won} negócio{data.deals.won !== 1 ? "s" : ""} ganho{data.deals.won !== 1 ? "s" : ""}
-            </p>
-          </CardContent>
-        </Card>
+        <ReportFilters />
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Taxa de Conversão</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{data.deals.conversionRate}%</div>
-            <p className="text-xs text-muted-foreground">
-              {data.deals.total} negócios no total
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Resolução de Tickets</CardTitle>
-            <TicketIcon className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{data.tickets.resolutionRate}%</div>
-            <p className="text-xs text-muted-foreground">
-              {data.tickets.resolved} de {data.tickets.total} resolvidos
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Pipeline por Estágio */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <KanbanSquare className="h-4 w-4 text-muted-foreground" />
-              <CardTitle className="text-base">Pipeline por Estágio</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {data.deals.total === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">
-                Nenhum negócio cadastrado
+        {/* KPI Cards */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total de Clientes</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{data.clients.total}</div>
+              <p className="text-xs text-muted-foreground">
+                {data.clients.active} ativos · {data.clients.total - data.clients.active} inativos
               </p>
-            ) : (
-              DEAL_STAGES.map((stage) => {
-                const stageData = data.deals.byStage.find(
-                  (d) => d.stage === stage.key
-                );
-                const stageCount = stageData?.count ?? 0;
-                const stageValue = parseFloat(stageData?.totalValue ?? "0");
-                const pct =
-                  data.deals.total > 0
-                    ? Math.round((stageCount / data.deals.total) * 100)
-                    : 0;
-                return (
-                  <div key={stage.key} className="space-y-1">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="font-medium">{stage.label}</span>
-                      <div className="flex items-center gap-3 text-muted-foreground">
-                        {stageValue > 0 && (
-                          <span>{formatCurrency(stageValue)}</span>
-                        )}
-                        <span>{stageCount} negócio{stageCount !== 1 ? "s" : ""}</span>
-                        <span className="w-8 text-right">{pct}%</span>
-                      </div>
-                    </div>
-                    <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
-                      <div
-                        className={
-                          stage.key === "CLOSED_WON"
-                            ? "h-full bg-green-500 rounded-full"
-                            : stage.key === "CLOSED_LOST"
-                            ? "h-full bg-red-400 rounded-full"
-                            : "h-full bg-primary rounded-full"
-                        }
-                        style={{ width: `${pct}%` }}
-                      />
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        {/* Tickets por Status */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Receita Fechada</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{formatCurrency(data.deals.wonValue)}</div>
+              <p className="text-xs text-muted-foreground">
+                {data.deals.won} negócio{data.deals.won !== 1 ? "s" : ""} ganho{data.deals.won !== 1 ? "s" : ""}
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Taxa de Conversão</CardTitle>
+              <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{data.deals.conversionRate}%</div>
+              <p className="text-xs text-muted-foreground">
+                {data.deals.total} negócios no total
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Resolução de Tickets</CardTitle>
               <TicketIcon className="h-4 w-4 text-muted-foreground" />
-              <CardTitle className="text-base">Tickets por Status</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {data.tickets.total === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">
-                Nenhum ticket cadastrado
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{data.tickets.resolutionRate}%</div>
+              <p className="text-xs text-muted-foreground">
+                {data.tickets.resolved} de {data.tickets.total} resolvidos
               </p>
-            ) : (
-              TICKET_STATUSES.map((status) => {
-                const statusData = data.tickets.byStatus.find(
-                  (t) => t.status === status.key
-                );
-                const statusCount = statusData?.count ?? 0;
-                const pct =
-                  data.tickets.total > 0
-                    ? Math.round((statusCount / data.tickets.total) * 100)
-                    : 0;
-                return (
-                  <div key={status.key} className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Badge variant={status.variant} className="text-xs w-28 justify-center">
-                        {status.label}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-32 h-1.5 bg-muted rounded-full overflow-hidden">
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Pipeline por Estágio */}
+        <div className="grid gap-6 lg:grid-cols-2 mb-6">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <KanbanSquare className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-base">Pipeline por Estágio</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {data.deals.total === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  Nenhum negócio cadastrado no período
+                </p>
+              ) : (
+                DEAL_STAGES.map((stage) => {
+                  const stageData = data.deals.byStage.find(
+                    (d) => d.stage === stage.key
+                  );
+                  const stageCount = stageData?.count ?? 0;
+                  const stageValue = parseFloat(stageData?.totalValue ?? "0");
+                  const pct =
+                    data.deals.total > 0
+                      ? Math.round((stageCount / data.deals.total) * 100)
+                      : 0;
+                  return (
+                    <div key={stage.key} className="space-y-1">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="font-medium">{stage.label}</span>
+                        <div className="flex items-center gap-3 text-muted-foreground">
+                          {stageValue > 0 && (
+                            <span>{formatCurrency(stageValue)}</span>
+                          )}
+                          <span>{stageCount} negócio{stageCount !== 1 ? "s" : ""}</span>
+                          <span className="w-8 text-right">{pct}%</span>
+                        </div>
+                      </div>
+                      <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-primary rounded-full"
+                          className={
+                            stage.key === "CLOSED_WON"
+                              ? "h-full bg-green-500 rounded-full"
+                              : stage.key === "CLOSED_LOST"
+                                ? "h-full bg-red-400 rounded-full"
+                                : "h-full bg-primary rounded-full"
+                          }
                           style={{ width: `${pct}%` }}
                         />
                       </div>
-                      <span className="text-sm text-muted-foreground w-16 text-right">
-                        {statusCount} ({pct}%)
-                      </span>
                     </div>
-                  </div>
-                );
-              })
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Tickets por Prioridade + Resumo CRM */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-muted-foreground" />
-              <CardTitle className="text-base">Tickets por Prioridade</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {data.tickets.total === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">
-                Nenhum ticket cadastrado
-              </p>
-            ) : (
-              <div className="grid grid-cols-2 gap-3">
-                {TICKET_PRIORITIES.map((priority) => {
-                  const priorityData = data.tickets.byPriority.find(
-                    (t) => t.priority === priority.key
                   );
-                  const priorityCount = priorityData?.count ?? 0;
+                })
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Tickets por Status */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <TicketIcon className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-base">Tickets por Status</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {data.tickets.total === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  Nenhum ticket cadastrado no período
+                </p>
+              ) : (
+                TICKET_STATUSES.map((status) => {
+                  const statusData = data.tickets.byStatus.find(
+                    (t) => t.status === status.key
+                  );
+                  const statusCount = statusData?.count ?? 0;
+                  const pct =
+                    data.tickets.total > 0
+                      ? Math.round((statusCount / data.tickets.total) * 100)
+                      : 0;
                   return (
-                    <div
-                      key={priority.key}
-                      className="flex flex-col items-center justify-center rounded-lg border p-4 gap-1"
-                    >
-                      <Badge variant={priority.variant} className="text-xs">
-                        {priority.label}
-                      </Badge>
-                      <span className="text-2xl font-bold">{priorityCount}</span>
+                    <div key={status.key} className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Badge variant={status.variant} className="text-xs w-28 justify-center">
+                          {status.label}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-32 h-1.5 bg-muted rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-primary rounded-full"
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                        <span className="text-sm text-muted-foreground w-16 text-right">
+                          {statusCount} ({pct}%)
+                        </span>
+                      </div>
                     </div>
                   );
-                })}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                })
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-muted-foreground" />
-              <CardTitle className="text-base">Resumo CRM</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between py-3 border-b">
+        <div className="grid gap-6 lg:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-base">Tickets por Prioridade</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {data.tickets.total === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  Nenhum ticket cadastrado
+                </p>
+              ) : (
+                <div className="grid grid-cols-2 gap-3">
+                  {TICKET_PRIORITIES.map((priority) => {
+                    const priorityData = data.tickets.byPriority.find(
+                      (t) => t.priority === priority.key
+                    );
+                    const priorityCount = priorityData?.count ?? 0;
+                    return (
+                      <div
+                        key={priority.key}
+                        className="flex flex-col items-center justify-center rounded-lg border p-4 gap-1"
+                      >
+                        <Badge variant={priority.variant} className="text-xs">
+                          {priority.label}
+                        </Badge>
+                        <span className="text-2xl font-bold">{priorityCount}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">Clientes Ativos</span>
+                <CardTitle className="text-base">Resumo CRM</CardTitle>
               </div>
-              <span className="font-bold">{data.clients.active}</span>
-            </div>
-            <div className="flex items-center justify-between py-3 border-b">
-              <div className="flex items-center gap-2">
-                <XCircle className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">Clientes Inativos</span>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between py-3 border-b">
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">Clientes Ativos</span>
+                </div>
+                <span className="font-bold">{data.clients.active}</span>
               </div>
-              <span className="font-bold">{data.clients.total - data.clients.active}</span>
-            </div>
-            <div className="flex items-center justify-between py-3 border-b">
-              <div className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">Total de Contatos</span>
+              <div className="flex items-center justify-between py-3 border-b">
+                <div className="flex items-center gap-2">
+                  <XCircle className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">Clientes Inativos</span>
+                </div>
+                <span className="font-bold">{data.clients.total - data.clients.active}</span>
               </div>
-              <span className="font-bold">{data.contacts}</span>
-            </div>
-            <div className="flex items-center justify-between py-3">
-              <div className="flex items-center gap-2">
-                <KanbanSquare className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">Negócios Perdidos</span>
+              <div className="flex items-center justify-between py-3 border-b">
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">Total de Contatos</span>
+                </div>
+                <span className="font-bold">{data.contacts}</span>
               </div>
-              <span className="font-bold">{data.deals.lost}</span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+              <div className="flex items-center justify-between py-3">
+                <div className="flex items-center gap-2">
+                  <KanbanSquare className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">Negócios Perdidos</span>
+                </div>
+                <span className="font-bold">{data.deals.lost}</span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </PageContainer>
     </div>
   );
 }
+

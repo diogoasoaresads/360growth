@@ -13,6 +13,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { UserNav } from "@/components/shared/user-nav";
+import { NotificationBell } from "@/components/shared/NotificationBell";
 import { ContextSwitcherClient } from "@/components/admin/context-switcher-client";
 import { AgencyContextBanner } from "@/components/admin/agency-context-banner";
 import {
@@ -237,6 +238,9 @@ function Topbar({
           <span>Buscar…</span>
           <kbd className="ml-auto text-[10px] font-mono rounded bg-background border px-1">⌘K</kbd>
         </div>
+
+        {/* Notifications */}
+        <NotificationBell />
 
         {/* Context switcher */}
         <ContextSwitcherClient

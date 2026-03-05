@@ -15,6 +15,7 @@ import {
   Plug,
   ChevronRight,
   ChevronDown,
+  ClipboardList,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -47,6 +48,11 @@ const navItems: NavItem[] = [
     icon: TicketIcon,
   },
   {
+    label: "Tarefas",
+    href: "/agency/tasks",
+    icon: ClipboardList,
+  },
+  {
     label: "Relatórios",
     href: "/agency/reports",
     icon: BarChart3,
@@ -63,6 +69,10 @@ const navItems: NavItem[] = [
     label: "Configurações",
     href: "/agency/settings",
     icon: Settings,
+    children: [
+      { label: "Geral", href: "/agency/settings" },
+      { label: "Automações", href: "/agency/settings/automations" },
+    ],
   },
 ];
 
@@ -71,6 +81,7 @@ export function AgencySidebar() {
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
     "/agency/crm": pathname.startsWith("/agency/crm"),
     "/agency/reports": pathname.startsWith("/agency/reports"),
+    "/agency/settings": pathname.startsWith("/agency/settings"),
   });
 
   function toggleGroup(href: string) {

@@ -1,11 +1,13 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { tickets, clients, userContexts } from "@/lib/db/schema";
-import { eq, and, count } from "drizzle-orm";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { tickets, clients, userContexts, deals } from "@/lib/db/schema";
+import { eq, and, count, desc } from "drizzle-orm";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { TicketIcon, CheckCircle, Clock } from "lucide-react";
+import { TicketIcon, CheckCircle, Briefcase, Clock, ArrowRight } from "lucide-react";
 import { PageContainer } from "@/components/workspace/PageContainer";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export const metadata = {
   title: "Dashboard | Portal do Cliente",
@@ -28,13 +30,24 @@ async function getClientStats(clientId: string) {
     .from(tickets)
     .where(and(eq(tickets.clientId, client.id), eq(tickets.status, "RESOLVED")));
 
+  const [dealCount] = await db
+    .select({ count: count() })
+    .from(deals)
+    .where(eq(deals.clientId, client.id));
+
   const recentTickets = await db.query.tickets.findMany({
     where: eq(tickets.clientId, client.id),
-    orderBy: (tickets, { desc }) => [desc(tickets.createdAt)],
-    limit: 5,
+    orderBy: [desc(tickets.createdAt)],
+    limit: 3,
   });
 
-  return { client, openCount: openCount.count, resolvedCount: resolvedCount.count, recentTickets };
+  const activeDeals = await db.query.deals.findMany({
+    where: eq(deals.clientId, client.id),
+    orderBy: [desc(deals.updatedAt)],
+    limit: 3,
+  });
+
+  return { client, openCount: openCount.count, resolvedCount: resolvedCount.count, dealCount: dealCount.count, recentTickets, activeDeals };
 }
 
 export default async function PortalDashboard() {
@@ -72,70 +85,153 @@ export default async function PortalDashboard() {
     );
   }
 
+  const stageLabels: Record<string, string> = {
+    LEAD: "Lead",
+    QUALIFIED: "Qualificado",
+    PROPOSAL: "Proposta",
+    NEGOTIATION: "Negociação",
+    CLOSED_WON: "Ganho",
+    CLOSED_LOST: "Perdido",
+  };
+
   return (
     <div className="p-6">
       <PageContainer
         title="Meu Portal"
-        description={`Bem-vindo, ${session?.user.name ?? ""}`}
+        description={`Bem-vindo, ${session?.user.name ?? ""}. Aqui está o resumo das suas entregas.`}
       >
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tickets Abertos</CardTitle>
-            <TicketIcon className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.openCount}</div>
-          </CardContent>
-        </Card>
+        <div className="grid gap-4 md:grid-cols-4 mb-8">
+          <Card className="bg-primary/5 border-primary/20">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Projetos Ativos</CardTitle>
+              <Briefcase className="h-4 w-4 text-primary" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.dealCount}</div>
+              <p className="text-xs text-muted-foreground mt-1">Acompanhe o progresso em tempo real</p>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Resolvidos</CardTitle>
-            <CheckCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.resolvedCount}</div>
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Tickets em Aberto</CardTitle>
+              <TicketIcon className="h-4 w-4 text-orange-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.openCount}</div>
+              <p className="text-xs text-muted-foreground mt-1">Chamados aguardando resposta</p>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Empresa</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-lg font-bold truncate">{stats.client.company ?? stats.client.name}</div>
-          </CardContent>
-        </Card>
-      </div>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Chamados Resolvidos</CardTitle>
+              <CheckCircle className="h-4 w-4 text-green-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.resolvedCount}</div>
+              <p className="text-xs text-muted-foreground mt-1">Concluídos com sucesso</p>
+            </CardContent>
+          </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Tickets Recentes</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {stats.recentTickets.length === 0 ? (
-            <p className="text-muted-foreground text-sm">Nenhum ticket aberto.</p>
-          ) : (
-            <div className="space-y-3">
-              {stats.recentTickets.map((ticket) => (
-                <div key={ticket.id} className="flex items-center justify-between p-3 rounded-lg border">
-                  <div>
-                    <p className="font-medium text-sm">{ticket.subject}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {new Date(ticket.createdAt).toLocaleDateString("pt-BR")}
-                    </p>
-                  </div>
-                  <Badge variant={ticket.status === "OPEN" ? "default" : "secondary"}>
-                    {ticket.status === "OPEN" ? "Aberto" : ticket.status}
-                  </Badge>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Minha Empresa</CardTitle>
+              <Clock className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-lg font-bold truncate">{stats.client.company ?? stats.client.name}</div>
+              <p className="text-xs text-muted-foreground mt-1">Perfil verificado</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-2">
+          {/* Projetos Recentes */}
+          <Card className="flex flex-col">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Projetos em Andamento</CardTitle>
+                <CardDescription>Status atual das suas iniciativas.</CardDescription>
+              </div>
+              <Button variant="ghost" size="sm" asChild>
+                <Link href="/portal/projects" className="text-xs gap-1">
+                  Ver todos <ArrowRight className="h-3 w-3" />
+                </Link>
+              </Button>
+            </CardHeader>
+            <CardContent className="flex-1">
+              {stats.activeDeals.length === 0 ? (
+                <div className="h-full flex flex-col items-center justify-center text-center p-6 border-2 border-dashed rounded-lg">
+                  <Briefcase className="h-8 w-8 text-muted-foreground/20 mb-2" />
+                  <p className="text-sm text-muted-foreground">Nenhum projeto ativo no momento.</p>
                 </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+              ) : (
+                <div className="space-y-4">
+                  {stats.activeDeals.map((deal) => (
+                    <div key={deal.id} className="group relative rounded-lg border p-4 hover:border-primary/50 transition-colors">
+                      <div className="flex justify-between items-start mb-2">
+                        <h4 className="font-semibold text-sm">{deal.title}</h4>
+                        <Badge variant="outline" className="text-[10px] uppercase">
+                          {stageLabels[deal.stage] || deal.stage}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" /> {new Date(deal.createdAt).toLocaleDateString("pt-BR")}
+                        </span>
+                        {deal.value && (
+                          <span className="font-medium text-foreground">
+                            {Number(deal.value).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Tickets Recentes */}
+          <Card className="flex flex-col">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Suporte Recente</CardTitle>
+                <CardDescription>Últimos chamados abertos por você.</CardDescription>
+              </div>
+              <Button variant="ghost" size="sm" asChild>
+                <Link href="/portal/tickets" className="text-xs gap-1">
+                  Abrir Ticket <ArrowRight className="h-3 w-3" />
+                </Link>
+              </Button>
+            </CardHeader>
+            <CardContent className="flex-1">
+              {stats.recentTickets.length === 0 ? (
+                <div className="h-full flex flex-col items-center justify-center text-center p-6 border-2 border-dashed rounded-lg">
+                  <TicketIcon className="h-8 w-8 text-muted-foreground/20 mb-2" />
+                  <p className="text-sm text-muted-foreground">Tudo em ordem por aqui.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {stats.recentTickets.map((ticket) => (
+                    <div key={ticket.id} className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer group">
+                      <div className="space-y-1">
+                        <p className="font-medium text-sm group-hover:text-primary transition-colors">{ticket.subject}</p>
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-mono">
+                          {ticket.priority} • {new Date(ticket.createdAt).toLocaleDateString("pt-BR")}
+                        </p>
+                      </div>
+                      <Badge variant={ticket.status === "OPEN" ? "default" : "secondary"} className="text-[10px]">
+                        {ticket.status === "OPEN" ? "Aberto" : ticket.status}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </PageContainer>
     </div>
   );

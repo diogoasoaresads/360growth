@@ -16,6 +16,8 @@ import {
   integrations,
   integrationSecrets,
   integrationJobs,
+  tasks,
+  automationWorkflows,
 } from "./schema";
 
 export const usersRelations = relations(users, ({ many }) => ({
@@ -29,6 +31,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   responsibleDeals: many(deals),
   activities: many(activities),
   auditLogs: many(auditLogs),
+  tasks: many(tasks),
 }));
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
@@ -52,6 +55,8 @@ export const agenciesRelations = relations(agencies, ({ one, many }) => ({
   activities: many(activities),
   auditLogs: many(auditLogs),
   integrations: many(integrations),
+  tasks: many(tasks),
+  automationWorkflows: many(automationWorkflows),
 }));
 
 export const agencyUsersRelations = relations(agencyUsers, ({ one }) => ({
@@ -176,3 +181,24 @@ export const integrationJobsRelations = relations(integrationJobs, ({ one }) => 
     references: [integrations.id],
   }),
 }));
+
+export const tasksRelations = relations(tasks, ({ one }) => ({
+  agency: one(agencies, {
+    fields: [tasks.agencyId],
+    references: [agencies.id],
+  }),
+  responsible: one(users, {
+    fields: [tasks.responsibleId],
+    references: [users.id],
+  }),
+}));
+
+export const automationWorkflowsRelations = relations(
+  automationWorkflows,
+  ({ one }) => ({
+    agency: one(agencies, {
+      fields: [automationWorkflows.agencyId],
+      references: [agencies.id],
+    }),
+  })
+);

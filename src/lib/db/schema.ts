@@ -33,6 +33,9 @@ export type JobStatus = "pending" | "running" | "success" | "failed";
 export type TicketStatus = "OPEN" | "IN_PROGRESS" | "WAITING" | "RESOLVED" | "CLOSED";
 export type TicketPriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
 export type TicketType = "SUPPORT" | "FEATURE_REQUEST" | "BUG" | "BILLING" | "OTHER";
+export type TaskStatus = "PENDING" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
+export type AutomationTrigger = "DEAL_STAGE_CHANGED" | "TICKET_CREATED" | "TICKET_STATUS_CHANGED";
+export type AutomationActionType = "CREATE_TASK" | "SEND_NOTIFICATION" | "SEND_EMAIL";
 
 export interface PlanFeatures {
   maxMembers: number;
@@ -602,6 +605,87 @@ export const adCampaigns = pgTable(
 );
 
 // ============================================================
+// NOTIFICATIONS
+// ============================================================
+export const notifications = pgTable(
+  "notifications",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    agencyId: text("agency_id").references(() => agencies.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    message: text("message").notNull(),
+    link: text("link"),
+    type: text("type").notNull().default("INFO"), // INFO, SUCCESS, WARNING, ERROR, TICKET, DEAL
+    read: boolean("read").notNull().default(false),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("notifications_user_idx").on(t.userId),
+    index("notifications_agency_idx").on(t.agencyId),
+    index("notifications_read_idx").on(t.read),
+  ]
+);
+
+// ============================================================
+// TASKS
+// ============================================================
+export const tasks = pgTable(
+  "tasks",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    agencyId: text("agency_id")
+      .notNull()
+      .references(() => agencies.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    description: text("description"),
+    status: text("status").$type<TaskStatus>().notNull().default("PENDING"),
+    priority: text("priority").$type<TicketPriority>().notNull().default("MEDIUM"),
+    dueDate: timestamp("due_date", { mode: "date" }),
+    responsibleId: text("responsible_id").references(() => users.id, { onDelete: "set null" }),
+    entityType: text("entity_type").$type<EntityType>(),
+    entityId: text("entity_id"),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("tasks_agency_idx").on(t.agencyId),
+    index("tasks_status_idx").on(t.status),
+    index("tasks_entity_idx").on(t.entityType, t.entityId),
+  ]
+);
+
+// ============================================================
+// AUTOMATION WORKFLOWS
+// ============================================================
+export const automationWorkflows = pgTable(
+  "automation_workflows",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    agencyId: text("agency_id")
+      .notNull()
+      .references(() => agencies.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    triggerEvent: text("trigger_event").$type<AutomationTrigger>().notNull(),
+    triggerConditions: json("trigger_conditions").$type<Record<string, unknown>>(),
+    actions: json("actions").$type<Array<{ type: AutomationActionType; payload: Record<string, unknown> }>>().notNull(),
+    isActive: boolean("is_active").notNull().default(true),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [index("automation_workflows_agency_idx").on(t.agencyId)]
+);
+
+
+// ============================================================
 // TYPE EXPORTS
 // ============================================================
 export type User = typeof users.$inferSelect;
@@ -635,6 +719,12 @@ export type AdAccount = typeof adAccounts.$inferSelect;
 export type NewAdAccount = typeof adAccounts.$inferInsert;
 export type AdCampaign = typeof adCampaigns.$inferSelect;
 export type NewAdCampaign = typeof adCampaigns.$inferInsert;
+export type Notification = typeof notifications.$inferSelect;
+export type NewNotification = typeof notifications.$inferInsert;
+export type Task = typeof tasks.$inferSelect;
+export type NewTask = typeof tasks.$inferInsert;
+export type AutomationWorkflow = typeof automationWorkflows.$inferSelect;
+export type NewAutomationWorkflow = typeof automationWorkflows.$inferInsert;
 
 // ============================================================
 // MESSAGE TEMPLATES
