@@ -71,6 +71,13 @@
       "when": 1772438400000,
       "tag": "0009_fix_agencies_billing_columns",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1772445600000,
+      "tag": "0010_add_tasks_and_automations",
+      "breakpoints": true
     }
   ]
 }
