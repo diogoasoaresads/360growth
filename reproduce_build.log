@@ -1,0 +1,77 @@
+
+> 360growth@0.1.0 build
+> next build
+
+  ▲ Next.js 14.2.35
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/40) ...
+   Generating static pages (10/40) 
+   Generating static pages (20/40) 
+   Generating static pages (30/40) 
+ ✓ Generating static pages (40/40)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                  Size     First Load JS
+┌ ƒ /                                        189 B          96.4 kB
+├ ƒ /_not-found                              880 B          88.4 kB
+├ ƒ /admin                                   16.3 kB         236 kB
+├ ƒ /admin/agencies                          4.24 kB         201 kB
+├ ƒ /admin/agencies/[agencyId]               7.18 kB         120 kB
+├ ƒ /admin/agencies/[agencyId]/activity      144 B            99 kB
+├ ƒ /admin/agencies/[agencyId]/clients       170 B          87.7 kB
+├ ƒ /admin/agencies/[agencyId]/logs          4.93 kB         134 kB
+├ ƒ /admin/agencies/[agencyId]/members       144 B            99 kB
+├ ƒ /admin/agencies/[agencyId]/subscription  2.62 kB        98.5 kB
+├ ƒ /admin/agencies/new                      5.09 kB         189 kB
+├ ƒ /admin/billing                           909 B           207 kB
+├ ƒ /admin/config                            13.6 kB         155 kB
+├ ƒ /admin/health                            170 B          87.7 kB
+├ ƒ /admin/logs                              8.1 kB          170 kB
+├ ƒ /admin/plans                             3.63 kB         121 kB
+├ ƒ /admin/plans/[planId]                    7.54 kB         175 kB
+├ ƒ /admin/settings                          10 kB           156 kB
+├ ƒ /admin/system/db-migrate                 4.37 kB         110 kB
+├ ƒ /admin/system/jobs                       4.92 kB         134 kB
+├ ƒ /admin/system/qa                         4.46 kB         110 kB
+├ ƒ /admin/templates                         3.39 kB         116 kB
+├ ƒ /admin/tickets                           2.19 kB         178 kB
+├ ƒ /admin/tickets/[ticketId]                7.88 kB         156 kB
+├ ƒ /admin/users                             5.07 kB         203 kB
+├ ƒ /admin/users/[userId]                    9.98 kB         198 kB
+├ ƒ /agency/crm/clients                      189 B          96.4 kB
+├ ƒ /agency/crm/clients/[clientId]           5.77 kB         110 kB
+├ ƒ /agency/crm/contacts                     170 B          87.7 kB
+├ ƒ /agency/crm/pipeline                     169 B          87.7 kB
+├ ƒ /agency/dashboard                        170 B          87.7 kB
+├ ƒ /agency/integrations                     8.29 kB         127 kB
+├ ƒ /agency/reports                          170 B          87.7 kB
+├ ƒ /agency/reports/ad-accounts              4.9 kB          109 kB
+├ ƒ /agency/settings                         4.64 kB         100 kB
+├ ƒ /agency/tickets                          5.56 kB         194 kB
+├ ƒ /agency/tickets/[id]                     5.86 kB         158 kB
+├ ƒ /api/auth/[...nextauth]                  0 B                0 B
+├ ƒ /api/auth/register                       0 B                0 B
+├ ƒ /api/oauth/google/callback               0 B                0 B
+├ ƒ /api/oauth/google/start                  0 B                0 B
+├ ƒ /api/webhooks/stripe                     0 B                0 B
+├ ƒ /login                                   8.28 kB         161 kB
+├ ƒ /portal/dashboard                        170 B          87.7 kB
+├ ƒ /portal/tickets                          169 B          87.7 kB
+├ ƒ /register                                4.67 kB         140 kB
+├ ƒ /s/[slug]                                189 B          96.4 kB
+├ ƒ /setup                                   4.33 kB         119 kB
+├ ƒ /super-admin/dashboard                   170 B          87.7 kB
+└ ƒ /unauthorized                            189 B          96.4 kB
++ First Load JS shared by all                87.5 kB
+  ├ chunks/2117-fa8f3983d91e1f8e.js          31.9 kB
+  ├ chunks/fd9d1056-51646d7454c800aa.js      53.6 kB
+  └ other shared chunks (total)              1.97 kB
+
+
+ƒ  (Dynamic)  server-rendered on demand
+

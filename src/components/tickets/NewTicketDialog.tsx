@@ -47,8 +47,7 @@ export function NewTicketDialog({ clients }: NewTicketDialogProps) {
     const router = useRouter();
 
     const form = useForm<CreateTicketInput>({
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        resolver: zodResolver(createTicketSchema) as any,
+        resolver: zodResolver(createTicketSchema),
         defaultValues: {
             subject: "",
             clientId: "",
