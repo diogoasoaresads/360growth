@@ -9,6 +9,7 @@ import { Users, KanbanSquare, TicketIcon, TrendingUp } from "lucide-react";
 import { PageContainer } from "@/components/workspace/PageContainer";
 import { subDays, format } from "date-fns";
 import { DashboardCharts } from "@/components/dashboard/DashboardCharts";
+import Link from "next/link";
 
 export const metadata = {
   title: "Dashboard | Agência",
@@ -257,9 +258,13 @@ export default async function AgencyDashboard() {
                 ) : (
                   <div className="space-y-4">
                     {stats.recentTickets.map((ticket) => (
-                      <div key={ticket.id} className="flex items-center justify-between border-b pb-2 last:border-0 last:pb-0">
+                      <Link
+                        key={ticket.id}
+                        href={`/agency/tickets?ticketId=${ticket.id}`}
+                        className="flex items-center justify-between border-b pb-2 last:border-0 last:pb-0 hover:bg-muted/50 transition-colors rounded-md px-2 -mx-2 py-2 group"
+                      >
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium truncate">{ticket.subject}</p>
+                          <p className="text-sm font-medium truncate group-hover:text-primary transition-colors">{ticket.subject}</p>
                           <p className="text-xs text-muted-foreground">
                             {ticket.client?.name} • {format(new Date(ticket.createdAt), "dd/MM/yy")}
                           </p>
@@ -267,7 +272,7 @@ export default async function AgencyDashboard() {
                         <Badge variant="outline" className="ml-2 text-[10px]">
                           {ticket.status}
                         </Badge>
-                      </div>
+                      </Link>
                     ))}
                   </div>
                 )}

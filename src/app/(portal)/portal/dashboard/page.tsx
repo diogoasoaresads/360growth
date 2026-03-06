@@ -169,9 +169,13 @@ export default async function PortalDashboard() {
               ) : (
                 <div className="space-y-4">
                   {stats.activeDeals.map((deal) => (
-                    <div key={deal.id} className="group relative rounded-lg border p-4 hover:border-primary/50 transition-colors">
+                    <Link
+                      key={deal.id}
+                      href={`/portal/projects?dealId=${deal.id}`}
+                      className="group relative block rounded-lg border p-4 hover:border-primary/50 transition-colors"
+                    >
                       <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-semibold text-sm">{deal.title}</h4>
+                        <h4 className="font-semibold text-sm group-hover:text-primary transition-colors">{deal.title}</h4>
                         <Badge variant="outline" className="text-[10px] uppercase">
                           {stageLabels[deal.stage] || deal.stage}
                         </Badge>
@@ -186,7 +190,7 @@ export default async function PortalDashboard() {
                           </span>
                         )}
                       </div>
-                    </div>
+                    </Link>
                   ))}
                 </div>
               )}

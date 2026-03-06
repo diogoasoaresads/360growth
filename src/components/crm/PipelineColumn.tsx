@@ -9,6 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { DealCard } from "./DealCard";
 import type { Deal, Client, DealStage } from "@/lib/db/schema";
 import { cn } from "@/lib/utils";
+import { Plus } from "lucide-react";
+import Link from "next/link";
 
 interface DealWithClient extends Deal {
     client: Client | null;
@@ -51,11 +53,20 @@ export function PipelineColumn({ id, label, color, deals }: PipelineColumnProps)
                         {deals.length} negócio{deals.length !== 1 ? "s" : ""}
                     </p>
                 </div>
-                {totalValue > 0 && (
-                    <Badge variant="secondary" className="text-[10px] font-bold bg-background/50">
-                        R$ {totalValue.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                    </Badge>
-                )}
+                <div className="flex items-center gap-2">
+                    {totalValue > 0 && (
+                        <Badge variant="secondary" className="text-[10px] font-bold bg-background/50">
+                            R$ {totalValue.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                        </Badge>
+                    )}
+                    <Link
+                        href="/agency/crm/clients"
+                        className="h-6 w-6 flex items-center justify-center rounded-md hover:bg-background/50 text-muted-foreground hover:text-primary transition-colors border border-transparent hover:border-sidebar-border"
+                        title="Adicionar Negócio"
+                    >
+                        <Plus className="h-3.5 w-3.5" />
+                    </Link>
+                </div>
             </div>
 
             <div className="flex-1 space-y-2.5 min-h-[500px]">
