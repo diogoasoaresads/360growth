@@ -22,8 +22,24 @@ import {
   PanelLeftOpen,
   Search,
   Home,
+  LayoutDashboard,
+  Building2,
+  Users,
+  CreditCard,
+  DollarSign,
+  Settings,
+  SlidersHorizontal,
+  Mail,
+  ScrollText,
+  Activity,
+  Zap,
+  DatabaseZap,
+  Plug,
+  FlaskConical,
+  Ticket,
 } from "lucide-react";
 import type { NavGroup } from "@/config/navigation";
+import type { LucideIcon } from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -70,6 +86,24 @@ const SEGMENT_LABELS: Record<string, string> = {
   portal: "Portal",
 };
 
+const ICON_MAP: Record<string, LucideIcon> = {
+  dashboard: LayoutDashboard,
+  agencies: Building2,
+  users: Users,
+  tickets: Ticket,
+  plans: CreditCard,
+  billing: DollarSign,
+  settings: Settings,
+  config: SlidersHorizontal,
+  templates: Mail,
+  logs: ScrollText,
+  health: Activity,
+  jobs: Zap,
+  db: DatabaseZap,
+  integrations: Plug,
+  qa: FlaskConical,
+};
+
 function buildBreadcrumbs(pathname: string) {
   const segments = pathname.split("/").filter(Boolean);
   const crumbs: { label: string; href: string }[] = [];
@@ -95,7 +129,7 @@ function NavLink({
   pathname: string;
 }) {
   if (!item.href) return null;
-  const Icon = item.icon;
+  const Icon = item.icon ? ICON_MAP[item.icon] : null;
   const isActive = item.exact
     ? pathname === item.href
     : pathname.startsWith(item.href);
