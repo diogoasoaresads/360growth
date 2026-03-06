@@ -1,8 +1,8 @@
 /** Incremental build identifier — bump on every release. */
-export const BUILD_ID = "0028";
+export const BUILD_ID = "0029";
 
 /** Timestamp of the last release (YYYY-MM-DD HH:mm). */
-export const UPDATED_AT = "2026-03-01 22:00";
+export const UPDATED_AT = "2026-03-06 10:00";
 
 /** Timezone used for UPDATED_AT. */
 export const UPDATED_TZ = "America/Sao_Paulo";
@@ -19,6 +19,15 @@ export interface ChangelogEntry {
  * Maintain at minimum the last 10 entries.
  */
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    id: "0029",
+    at: "2026-03-06 10:00",
+    lines: [
+      "Fix crítico: migration 0010 — coluna active_client_id ausente em user_contexts (quebrava portal e login CLIENT)",
+      "Fix admin layout: query de agências com try-catch (previne Application error no login SUPER_ADMIN)",
+      "Adicionado error.tsx em /admin, /agency, /portal e raiz — errors mostram mensagem amigável + código de debug",
+    ],
+  },
   {
     id: "0028",
     at: "2026-03-01 22:00",
