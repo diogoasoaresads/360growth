@@ -38,7 +38,7 @@ async function getAgencyStats(agencyId: string) {
   const [wonDeals] = await db
     .select({ count: count() })
     .from(deals)
-    .where(and(eq(deals.agencyId, agencyId), eq(deals.stage, "CLOSED_WON")));
+    .where(and(eq(deals.agencyId, agencyId), eq(deals.status, "CLOSED_WON")));
 
   const conversionRate = dealCount.count > 0
     ? Math.round((wonDeals.count / dealCount.count) * 100)
@@ -86,12 +86,12 @@ async function getAgencyStats(agencyId: string) {
   // 5. Pipeline Stages
   const pipelineDataRaw = await db
     .select({
-      stage: deals.stage,
+      stageId: deals.stageId,
       count: count(),
     })
     .from(deals)
     .where(eq(deals.agencyId, agencyId))
-    .groupBy(deals.stage);
+    .groupBy(deals.stageId);
 
   const stageLabels: Record<string, string> = {
     LEAD: "Lead",
@@ -103,7 +103,7 @@ async function getAgencyStats(agencyId: string) {
   };
 
   const pipelineData = Object.keys(stageLabels).map(key => {
-    const found = pipelineDataRaw.find(p => p.stage === key);
+    const found = pipelineDataRaw.find(p => p.stageId === key);
     return {
       stage: stageLabels[key],
       count: found?.count || 0,
@@ -156,55 +156,56 @@ export default async function AgencyDashboard() {
   const stats = await getAgencyStats(agencyId);
 
   return (
-    <div className="p-6">
+    <div className="p-6 animate-fade-in-up">
       <PageContainer
         title="Dashboard"
         description={`Bem-vindo de volta, ${session?.user.name ?? ""}`}
+        className="animate-fade-in-up"
       >
         <div className="space-y-8">
           {/* Stats Grid */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Card>
+            <Card className="glass-card hover-lift border-primary/20 bg-primary/5">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total de Clientes</CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-sm font-semibold tracking-tight">Total de Clientes</CardTitle>
+                <Users className="h-4 w-4 text-primary animate-pulse-soft" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.clients}</div>
-                <p className="text-xs text-muted-foreground">clientes ativos</p>
+                <div className="text-3xl font-extrabold tracking-tight">{stats.clients}</div>
+                <p className="text-[10px] text-muted-foreground mt-1 uppercase font-bold tracking-wider">clientes ativos</p>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="glass-card hover-lift">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Negócios no Pipeline</CardTitle>
-                <KanbanSquare className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-sm font-semibold tracking-tight">Negócios no Pipeline</CardTitle>
+                <KanbanSquare className="h-4 w-4 text-azure-600 animate-pulse-soft" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.deals}</div>
-                <p className="text-xs text-muted-foreground">deals ativos</p>
+                <div className="text-3xl font-extrabold tracking-tight">{stats.deals}</div>
+                <p className="text-[10px] text-muted-foreground mt-1 uppercase font-bold tracking-wider">deals ativos</p>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="glass-card hover-lift">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Tickets Abertos</CardTitle>
-                <TicketIcon className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-sm font-semibold tracking-tight">Tickets Abertos</CardTitle>
+                <TicketIcon className="h-4 w-4 text-orange-500 animate-pulse-soft" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.openTickets}</div>
-                <p className="text-xs text-muted-foreground">aguardando resposta</p>
+                <div className="text-3xl font-extrabold tracking-tight">{stats.openTickets}</div>
+                <p className="text-[10px] text-muted-foreground mt-1 uppercase font-bold tracking-wider">aguardando resposta</p>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="glass-card hover-lift bg-green-50/30 border-green-200/50">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Taxa de Conversão</CardTitle>
-                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-sm font-semibold tracking-tight">Taxa de Conversão</CardTitle>
+                <TrendingUp className="h-4 w-4 text-green-600 animate-pulse-soft" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.conversionRate}%</div>
-                <p className="text-xs text-muted-foreground">leads convertidos</p>
+                <div className="text-3xl font-extrabold tracking-tight">{stats.conversionRate}%</div>
+                <p className="text-[10px] text-muted-foreground mt-1 uppercase font-bold tracking-wider">leads convertidos</p>
               </CardContent>
             </Card>
           </div>

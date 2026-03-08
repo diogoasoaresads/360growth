@@ -34,8 +34,22 @@ export type TicketStatus = "OPEN" | "IN_PROGRESS" | "WAITING" | "RESOLVED" | "CL
 export type TicketPriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
 export type TicketType = "SUPPORT" | "FEATURE_REQUEST" | "BUG" | "BILLING" | "OTHER";
 export type TaskStatus = "PENDING" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
-export type AutomationTrigger = "DEAL_STAGE_CHANGED" | "TICKET_CREATED" | "TICKET_STATUS_CHANGED";
-export type AutomationActionType = "CREATE_TASK" | "SEND_NOTIFICATION" | "SEND_EMAIL";
+export type AutomationTrigger =
+  | "DEAL_CREATED"
+  | "DEAL_STAGE_CHANGED"
+  | "SLA_BREACHED"
+  | "NEXT_ACTION_DUE"
+  | "DEAL_IDLE"
+  | "TICKET_CREATED"
+  | "TICKET_STATUS_CHANGED";
+
+export type AutomationActionType =
+  | "CREATE_TASK"
+  | "SEND_NOTIFICATION"
+  | "SEND_EMAIL"
+  | "SEND_WHATSAPP"
+  | "ADD_TAG"
+  | "MOVE_STAGE";
 
 export interface PlanFeatures {
   maxMembers: number;
@@ -257,6 +271,59 @@ export const contacts = pgTable(
 );
 
 // ============================================================
+// PIPELINES
+// ============================================================
+export const pipelines = pgTable(
+  "pipelines",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    agencyId: text("agency_id")
+      .notNull()
+      .references(() => agencies.id, { onDelete: "cascade" }),
+    clientId: text("client_id")
+      .notNull()
+      .references(() => clients.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    description: text("description"),
+    isDefault: boolean("is_default").notNull().default(false),
+    createdBy: text("created_by").references(() => users.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("pipelines_agency_id_idx").on(t.agencyId),
+    index("pipelines_client_id_idx").on(t.clientId),
+  ]
+);
+
+// ============================================================
+// PIPELINE STAGES
+// ============================================================
+export const pipelineStages = pgTable(
+  "pipeline_stages",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    pipelineId: text("pipeline_id")
+      .notNull()
+      .references(() => pipelines.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    color: text("color").default("#3b82f6"),
+    orderIndex: integer("order_index").notNull().default(0),
+    probability: integer("probability").default(0),
+    isClosedWon: boolean("is_closed_won").notNull().default(false),
+    isClosedLost: boolean("is_closed_lost").notNull().default(false),
+    slaDays: integer("sla_days").default(0), // Phase 2 requirement
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [index("pipeline_stages_pipeline_id_idx").on(t.pipelineId)]
+);
+
+// ============================================================
 // DEALS
 // ============================================================
 export const deals = pgTable(
@@ -271,20 +338,68 @@ export const deals = pgTable(
     clientId: text("client_id")
       .notNull()
       .references(() => clients.id, { onDelete: "cascade" }),
+    pipelineId: text("pipeline_id").references(() => pipelines.id, { onDelete: "cascade" }),
+    stageId: text("stage_id").references(() => pipelineStages.id, { onDelete: "set null" }),
     title: text("title").notNull(),
-    value: decimal("value", { precision: 12, scale: 2 }),
-    stage: text("stage").$type<DealStage>().notNull().default("LEAD"),
-    responsibleId: text("responsible_id").references(() => users.id, { onDelete: "set null" }),
-    dueDate: timestamp("due_date", { mode: "date" }),
     description: text("description"),
-    probability: integer("probability").default(0),
+    value: decimal("value", { precision: 12, scale: 2 }),
+    currency: text("currency").notNull().default("BRL"),
+    status: text("status").notNull().default("OPEN"), // OPEN, WON, LOST
+    expectedCloseDate: timestamp("expected_close_date", { mode: "date" }),
+    responsibleId: text("responsible_id").references(() => users.id, { onDelete: "set null" }),
+    contactId: text("contact_id").references(() => contacts.id, { onDelete: "set null" }),
+    companyName: text("company_name"),
+    tags: text("tags").array(),
+
+    // Performance / Lead Source
+    leadSource: text("lead_source"),
+    utmSource: text("utm_source"),
+    utmMedium: text("utm_medium"),
+    utmCampaign: text("utm_campaign"),
+    utmTerm: text("utm_term"),
+
+    lastActivityAt: timestamp("last_activity_at", { mode: "date" }).defaultNow(),
+    closedAt: timestamp("closed_at", { mode: "date" }),
+
+    // CRM Phase 3: Intelligence & Automation
+    dealScore: integer("deal_score").default(0),
+    dealSummary: text("deal_summary"),
+    dealRiskLevel: text("deal_risk_level"), // LOW, MEDIUM, HIGH, CRITICAL
+    dealProbabilityDynamic: integer("deal_probability_dynamic"),
+    checklistProgress: json("checklist_progress").$type<Record<string, boolean>>(),
+    nextActionDate: timestamp("next_action_date", { mode: "date" }),
+    nextActionDescription: text("next_action_description"),
+    lossReason: text("loss_reason"), // Phase 2 requirement
+
     createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
   },
   (t) => [
     index("deals_agency_id_idx").on(t.agencyId),
-    index("deals_stage_idx").on(t.stage),
+    index("deals_client_id_idx").on(t.clientId),
+    index("deals_pipeline_id_idx").on(t.pipelineId),
+    index("deals_stage_id_idx").on(t.stageId),
   ]
+);
+
+// ============================================================
+// DEAL STAGE HISTORY
+// ============================================================
+export const dealStageHistory = pgTable(
+  "deal_stage_history",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    dealId: text("deal_id")
+      .notNull()
+      .references(() => deals.id, { onDelete: "cascade" }),
+    fromStageId: text("from_stage_id").references(() => pipelineStages.id, { onDelete: "set null" }),
+    toStageId: text("to_stage_id").references(() => pipelineStages.id, { onDelete: "set null" }),
+    movedBy: text("moved_by").references(() => users.id, { onDelete: "set null" }),
+    movedAt: timestamp("moved_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [index("deal_stage_history_deal_id_idx").on(t.dealId)]
 );
 
 // ============================================================
@@ -684,6 +799,99 @@ export const automationWorkflows = pgTable(
   (t) => [index("automation_workflows_agency_idx").on(t.agencyId)]
 );
 
+// ============================================================
+// STAGE PLAYBOOKS (Phase 3)
+// ============================================================
+export const stagePlaybooks = pgTable(
+  "stage_playbooks",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    stageId: text("stage_id")
+      .notNull()
+      .unique()
+      .references(() => pipelineStages.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    description: text("description"),
+    checklist: json("checklist").$type<string[]>().notNull().default([]),
+    recommendedActions: text("recommended_actions"),
+    scripts: json("scripts").$type<Array<{ label: string; text: string }>>().default([]),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [index("stage_playbooks_stage_idx").on(t.stageId)]
+);
+
+// ============================================================
+// DEAL AUTOMATION RULES (Phase 3)
+// ============================================================
+export const dealAutomationRules = pgTable(
+  "deal_automation_rules",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    agencyId: text("agency_id")
+      .notNull()
+      .references(() => agencies.id, { onDelete: "cascade" }),
+    triggerStageId: text("trigger_stage_id").references(() => pipelineStages.id, { onDelete: "cascade" }),
+    delayDays: integer("delay_days").notNull().default(0),
+    actionType: text("action_type").notNull(),
+    actionPayload: json("action_payload").notNull(),
+    triggerEvent: text("trigger_event").$type<AutomationTrigger>().default("DEAL_STAGE_CHANGED"),
+    delayHours: integer("delay_hours").default(0),
+    isActive: boolean("is_active").notNull().default(true),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [index("deal_automation_rules_agency_stage_idx").on(t.agencyId, t.triggerStageId)]
+);
+
+// ============================================================
+// DEAL MESSAGES (Phase 4)
+// ============================================================
+export const dealMessages = pgTable(
+  "deal_messages",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    dealId: text("deal_id")
+      .notNull()
+      .references(() => deals.id, { onDelete: "cascade" }),
+    channel: text("channel").notNull(), // whatsapp, email, sms
+    direction: text("direction").notNull(), // INBOUND, OUTBOUND
+    message: text("message").notNull(),
+    status: text("status").notNull().default("SENT"), // SENT, DELIVERED, READ, FAILED
+    metadata: json("metadata"),
+    sentAt: timestamp("sent_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [index("deal_messages_deal_idx").on(t.dealId)]
+);
+
+// ============================================================
+// LEAD SOURCES (Phase 4)
+// ============================================================
+export const leadSources = pgTable(
+  "lead_sources",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    agencyId: text("agency_id")
+      .notNull()
+      .references(() => agencies.id, { onDelete: "cascade" }),
+    source: text("source").notNull(), // e.g., facebook, google, landing-page
+    medium: text("medium"),
+    campaign: text("campaign"),
+    externalIdentifier: text("external_identifier"),
+    metadata: json("metadata"),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [index("lead_sources_agency_idx").on(t.agencyId)]
+);
+
 
 // ============================================================
 // TYPE EXPORTS
@@ -723,8 +931,20 @@ export type Notification = typeof notifications.$inferSelect;
 export type NewNotification = typeof notifications.$inferInsert;
 export type Task = typeof tasks.$inferSelect;
 export type NewTask = typeof tasks.$inferInsert;
+export type Pipeline = typeof pipelines.$inferSelect;
+export type NewPipeline = typeof pipelines.$inferInsert;
+export type PipelineStage = typeof pipelineStages.$inferSelect;
+export type NewPipelineStage = typeof pipelineStages.$inferInsert;
+export type DealStageHistory = typeof dealStageHistory.$inferSelect;
 export type AutomationWorkflow = typeof automationWorkflows.$inferSelect;
 export type NewAutomationWorkflow = typeof automationWorkflows.$inferInsert;
+export type DealMessage = typeof dealMessages.$inferSelect;
+export type NewDealMessage = typeof dealMessages.$inferInsert;
+export type LeadSource = typeof leadSources.$inferSelect;
+export type NewLeadSource = typeof leadSources.$inferInsert;
+export type DealAutomationRule = typeof dealAutomationRules.$inferSelect;
+export type NewDealAutomationRule = typeof dealAutomationRules.$inferInsert;
+export type Playbook = typeof stagePlaybooks.$inferSelect;
 
 // ============================================================
 // MESSAGE TEMPLATES

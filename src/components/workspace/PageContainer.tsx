@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { features } from "@/config/features";
+import { cn } from "@/lib/utils";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -12,6 +13,7 @@ export interface PageContainerProps {
   /** Optional slot rendered below the title row (search bars, tabs, etc.). */
   toolbar?: ReactNode;
   children: ReactNode;
+  className?: string;
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -30,6 +32,7 @@ export function PageContainer({
   actions,
   toolbar,
   children,
+  className,
 }: PageContainerProps) {
   if (!features.usePagePatternEverywhere) {
     // Instant rollback — render exactly as old code did
@@ -37,7 +40,7 @@ export function PageContainer({
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className={cn("flex flex-col gap-6", className)}>
       {/* ── Header row ───────────────────────────────────────────── */}
       <div className="flex flex-col gap-4 border-b border-border pb-5">
         <div className="flex items-start justify-between gap-4">

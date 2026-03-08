@@ -7,33 +7,35 @@ import {
 } from "@dnd-kit/sortable";
 import { Badge } from "@/components/ui/badge";
 import { DealCard } from "./DealCard";
-import type { Deal, Client, DealStage } from "@/lib/db/schema";
+import type { Deal, Client, User } from "@/lib/db/schema";
 import { cn } from "@/lib/utils";
 import { Plus } from "lucide-react";
 import Link from "next/link";
 
-interface DealWithClient extends Deal {
+interface DealExtended extends Deal {
     client: Client | null;
+    responsible: User | null;
 }
 
 interface PipelineColumnProps {
-    id: DealStage;
+    id: string;
     label: string;
     color: string;
-    deals: DealWithClient[];
+    deals: DealExtended[];
+    onDealClick: (deal: DealExtended) => void;
 }
 
-export function PipelineColumn({ id, label, color, deals }: PipelineColumnProps) {
+export function PipelineColumn({ id, label, color, deals, onDealClick }: PipelineColumnProps) {
     const { setNodeRef, isOver } = useDroppable({
         id,
         data: {
             type: "Column",
-            stage: id,
+            stageId: id,
         },
     });
 
     const totalValue = deals.reduce(
-        (sum, d) => sum + parseFloat(d.value ?? "0"),
+        (sum, d) => sum + Number(d.value || 0),
         0
     );
 
@@ -42,9 +44,9 @@ export function PipelineColumn({ id, label, color, deals }: PipelineColumnProps)
             ref={setNodeRef}
             className={cn(
                 "flex-shrink-0 w-80 rounded-xl border-2 p-3 transition-colors flex flex-col gap-3",
-                color,
                 isOver && "ring-2 ring-primary ring-offset-2 bg-primary/5"
             )}
+            style={{ borderColor: color + '20', backgroundColor: color + '05' }}
         >
             <div className="flex items-center justify-between px-1">
                 <div>
@@ -56,7 +58,7 @@ export function PipelineColumn({ id, label, color, deals }: PipelineColumnProps)
                 <div className="flex items-center gap-2">
                     {totalValue > 0 && (
                         <Badge variant="secondary" className="text-[10px] font-bold bg-background/50">
-                            R$ {totalValue.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                            {totalValue.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
                         </Badge>
                     )}
                     <Link
@@ -80,7 +82,9 @@ export function PipelineColumn({ id, label, color, deals }: PipelineColumnProps)
                         </div>
                     ) : (
                         deals.map((deal) => (
-                            <DealCard key={deal.id} deal={deal} />
+                            <div key={deal.id} onClick={() => onDealClick(deal)}>
+                                <DealCard deal={deal} />
+                            </div>
                         ))
                     )}
                 </SortableContext>

@@ -3,20 +3,35 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Card, CardContent } from "@/components/ui/card";
-import type { Deal, Client } from "@/lib/db/schema";
-import { formatDistanceToNow } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { ExternalLink } from "lucide-react";
+import type { Deal, Client, User } from "@/lib/db/schema";
+import { differenceInDays } from "date-fns";
+import { ExternalLink, User as UserIcon, Tag, Globe, Flame, AlertTriangle, Moon } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
-interface DealWithClient extends Deal {
+import { calculateDealScore, getPriorityLabel } from "@/lib/crm/crm-intelligence";
+
+interface DealExtended extends Deal {
     client: Client | null;
+    responsible: User | null;
 }
 
 interface DealCardProps {
-    deal: DealWithClient;
+    deal: DealExtended;
 }
 
 export function DealCard({ deal }: DealCardProps) {
+    const daysSinceUpdate = differenceInDays(new Date(), new Date(deal.lastActivityAt || deal.updatedAt));
+
+    // Aging Logic: Recent (< 3d), Attention (3-7d), Stalled (> 7d)
+    const agingColor = daysSinceUpdate < 3 ? "bg-green-500" : daysSinceUpdate < 7 ? "bg-amber-500" : "bg-red-500";
+    const agingLabel = daysSinceUpdate === 0 ? "Hoje" : `Há ${daysSinceUpdate} d`;
+
+    const score = calculateDealScore(deal as any);
+    const priority = getPriorityLabel(score);
+
+    const PriorityIcon = priority.icon === "Flame" ? Flame : priority.icon === "AlertTriangle" ? AlertTriangle : Moon;
+
     const {
         attributes,
         listeners,
@@ -42,7 +57,7 @@ export function DealCard({ deal }: DealCardProps) {
             <div
                 ref={setNodeRef}
                 style={style}
-                className="opacity-30 border-2 border-primary border-dashed rounded-lg h-[100px] w-full"
+                className="opacity-30 border-2 border-primary border-dashed rounded-lg h-[120px] w-full"
             />
         );
     }
@@ -53,40 +68,71 @@ export function DealCard({ deal }: DealCardProps) {
             style={style}
             {...attributes}
             {...listeners}
-            className="shadow-sm cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow select-none group"
+            className="shadow-sm hover-lift active:cursor-grabbing select-none group border-l-4 border-l-transparent hover:border-l-primary"
         >
-            <CardContent className="p-3">
+            <CardContent className="p-3 space-y-3">
                 <div className="flex items-start justify-between gap-2">
                     <div className="flex flex-col gap-1 min-w-0">
-                        <p className="font-semibold text-sm group-hover:text-primary transition-colors truncate">{deal.title}</p>
-                        <p className="text-[11px] text-muted-foreground truncate">
+                        <div className="flex items-center gap-2">
+                            <div className={cn("h-1.5 w-1.5 rounded-full shrink-0", agingColor)} title={`Última atividade: ${agingLabel}`} />
+                            <p className="font-semibold text-sm group-hover:text-primary transition-colors truncate leading-none">
+                                {deal.title}
+                            </p>
+                        </div>
+                        <p className="text-[11px] text-muted-foreground truncate ml-3.5 flex items-center gap-2">
                             {deal.client?.name ?? "Cliente não identificado"}
+                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-slate-100 text-[10px] font-bold text-slate-600 transition-colors group-hover:bg-primary/10 group-hover:text-primary">
+                                <PriorityIcon className="h-3 w-3" /> {score}
+                            </span>
                         </p>
                     </div>
                     <button
-                        onPointerDown={(e) => e.stopPropagation()} // Prevent drag when clicking button
+                        onPointerDown={(e) => e.stopPropagation()}
                         onClick={(e) => {
                             e.stopPropagation();
                             window.location.href = `/agency/crm/clients?clientId=${deal.clientId}`;
                         }}
-                        className="h-6 w-6 flex items-center justify-center rounded-md hover:bg-muted text-muted-foreground hover:text-primary transition-colors opacity-0 group-hover:opacity-100"
+                        className="h-6 w-6 flex items-center justify-center rounded-md hover:bg-muted text-muted-foreground hover:text-primary transition-colors opacity-0 group-hover:opacity-100 shrink-0"
                     >
                         <ExternalLink className="h-3.5 w-3.5" />
                     </button>
                 </div>
 
-                <div className="flex items-center justify-between mt-3">
-                    {deal.value ? (
-                        <p className="text-sm font-bold text-foreground">
-                            R$ {parseFloat(deal.value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                        </p>
-                    ) : (
-                        <span className="text-[10px] text-muted-foreground italic">Sem valor</span>
+                {/* Tags and Lead Source */}
+                <div className="flex flex-wrap gap-1 ml-3.5">
+                    {deal.leadSource && (
+                        <Badge variant="secondary" className="px-1.5 py-0 h-4 text-[9px] font-medium bg-blue-50 text-blue-700 border-blue-100 flex items-center gap-1">
+                            <Globe className="h-2 w-2" />
+                            {deal.leadSource}
+                        </Badge>
                     )}
+                    {deal.tags?.slice(0, 2).map(tag => (
+                        <Badge key={tag} variant="outline" className="px-1.5 py-0 h-4 text-[9px] font-medium">
+                            <Tag className="h-2 w-2 mr-1" />
+                            {tag}
+                        </Badge>
+                    ))}
+                </div>
 
-                    <span className="text-[10px] text-muted-foreground/60">
-                        {formatDistanceToNow(new Date(deal.createdAt), { locale: ptBR })}
-                    </span>
+                <div className="flex items-center justify-between pt-1 ml-3.5">
+                    <div className="flex flex-col">
+                        <span className="text-[9px] text-muted-foreground uppercase font-bold tracking-tight">Valor</span>
+                        <p className="text-sm font-bold text-foreground">
+                            {deal.value ? Number(deal.value).toLocaleString("pt-BR", { style: "currency", currency: deal.currency || "BRL" }) : "R$ 0,00"}
+                        </p>
+                    </div>
+
+                    <div className="flex flex-col items-end">
+                        <span className="text-[9px] text-muted-foreground uppercase font-bold tracking-tight">Responsável</span>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                            <div className="h-5 w-5 rounded-full bg-muted flex items-center justify-center border text-muted-foreground">
+                                <UserIcon className="h-3 w-3" />
+                            </div>
+                            <span className="text-[10px] font-medium truncate max-w-[60px]">
+                                {deal.responsible?.name?.split(' ')[0] || "---"}
+                            </span>
+                        </div>
+                    </div>
                 </div>
             </CardContent>
         </Card>

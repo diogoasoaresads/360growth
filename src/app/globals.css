@@ -2,27 +2,33 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 210 40% 98%;
+    /* Slate-50 */
+    --foreground: 222.2 47.4% 1.2%;
+    /* Deep Slate */
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 222.2 47.4% 1.2%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
+    --popover-foreground: 222.2 47.4% 1.2%;
+    --primary: 222.2 47.4% 11.2%;
+    /* Slate-900 */
     --primary-foreground: 210 40% 98%;
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
     --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted-foreground: 215.4 16.3% 44.9%;
     --accent: 210 40% 96.1%;
     --accent-foreground: 222.2 47.4% 11.2%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
+    --ring: 199 89% 48%;
+    /* Azure-600 */
     --radius: 0.5rem;
     --sidebar-background: 222.2 84% 4.9%;
     --sidebar-foreground: 210 40% 98%;
@@ -32,6 +38,20 @@
     --sidebar-accent-foreground: 210 40% 98%;
     --sidebar-border: 217.2 32.6% 17.5%;
     --sidebar-ring: 221.2 83.2% 53.3%;
+
+    /* UI/UX Pro Max Scales */
+    --z-hide: -1;
+    --z-base: 1;
+    --z-dropdown: 10;
+    --z-sticky: 20;
+    --z-fixed: 30;
+    --z-modal: 50;
+    --z-popover: 60;
+    --z-tooltip: 100;
+
+    --transition-fast: 150ms;
+    --transition-base: 300ms;
+    --transition-slow: 500ms;
   }
 
   .dark {
@@ -61,7 +81,33 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+}
+
+/* Custom UI/UX Pro Max Utilities */
+@layer utilities {
+  .transition-premium {
+    @apply transition-all duration-300 ease-in-out;
+  }
+
+  .hover-lift {
+    @apply transition-premium hover:-translate-y-1 hover:shadow-lg cursor-pointer;
+  }
+
+  .glass-card {
+    @apply bg-white/70 backdrop-blur-xl border border-white/40 shadow-xl shadow-slate-200/50;
+  }
+
+  .dark .glass-card {
+    @apply bg-slate-900/70 border-slate-800/50 shadow-none;
+  }
+
+  .pro-max-gradient {
+    background: radial-gradient(circle at top left, var(--tw-gradient-from), transparent 70%),
+      radial-gradient(circle at bottom right, var(--tw-gradient-to), transparent 70%);
   }
 }

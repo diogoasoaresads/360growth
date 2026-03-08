@@ -20,44 +20,41 @@ import {
 import { PipelineColumn } from "./PipelineColumn";
 import { DealCard } from "./DealCard";
 import { updateDealStage } from "@/lib/actions/deal.actions";
-import type { Deal, Client, DealStage } from "@/lib/db/schema";
 import { toast } from "sonner";
+import { DealDetailsDrawer } from "./DealDetailsDrawer";
 
-interface DealWithClient extends Deal {
+interface DealExtended extends Deal {
     client: Client | null;
+    responsible: User | null;
+    stage?: PipelineStage | null;
 }
+
 
 interface PipelineBoardProps {
-    initialDeals: DealWithClient[];
+    initialDeals: DealExtended[];
+    stages: PipelineStage[];
 }
 
-const STAGES: { key: DealStage; label: string; color: string }[] = [
-    { key: "LEAD", label: "Lead", color: "bg-slate-50 border-slate-200" },
-    { key: "QUALIFIED", label: "Qualificado", color: "bg-blue-50/50 border-blue-200" },
-    { key: "PROPOSAL", label: "Proposta", color: "bg-purple-50/50 border-purple-200" },
-    { key: "NEGOTIATION", label: "Negociação", color: "bg-amber-50/50 border-amber-200" },
-    { key: "CLOSED_WON", label: "Ganho", color: "bg-green-50/50 border-green-200" },
-    { key: "CLOSED_LOST", label: "Perdido", color: "bg-red-50/50 border-red-200" },
-];
+export function PipelineBoard({ initialDeals, stages }: PipelineBoardProps) {
+    const [deals, setDeals] = useState<DealExtended[]>(initialDeals);
+    const [activeDeal, setActiveDeal] = useState<DealExtended | null>(null);
+    const [selectedDeal, setSelectedDeal] = useState<DealExtended | null>(null);
 
-export function PipelineBoard({ initialDeals }: PipelineBoardProps) {
-    const [deals, setDeals] = useState<DealWithClient[]>(initialDeals);
-    const [activeDeal, setActiveDeal] = useState<DealWithClient | null>(null);
+    // Filter deals by stage
+    const getDealsByStage = (stageId: string) => {
+        return deals.filter((d) => d.stageId === stageId);
+    };
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
             activationConstraint: {
-                distance: 8, // Avoid accidental drags
+                distance: 8,
             },
         }),
         useSensor(KeyboardSensor, {
             coordinateGetter: sortableKeyboardCoordinates,
         })
     );
-
-    const getDealsByStage = (stage: DealStage) => {
-        return deals.filter((d) => d.stage === stage);
-    };
 
     function handleDragStart(event: DragStartEvent) {
         const { active } = event;
@@ -76,22 +73,22 @@ export function PipelineBoard({ initialDeals }: PipelineBoardProps) {
         if (!activeDeal) return;
 
         // Over a column or another deal?
-        const isOverAColumn = STAGES.some(s => s.key === overId);
-        let newStage: DealStage;
+        const isOverAColumn = stages.some(s => s.id === overId);
+        let newStageId: string;
 
         if (isOverAColumn) {
-            newStage = overId as DealStage;
+            newStageId = overId;
         } else {
             const overDeal = deals.find((d) => d.id === overId);
             if (!overDeal) return;
-            newStage = overDeal.stage;
+            newStageId = overDeal.stageId!;
         }
 
-        if (activeDeal.stage !== newStage) {
+        if (activeDeal.stageId !== newStageId) {
             setDeals((prev) => {
                 const activeIndex = prev.findIndex((d) => d.id === activeId);
                 const updatedDeals = [...prev];
-                updatedDeals[activeIndex] = { ...activeDeal, stage: newStage };
+                updatedDeals[activeIndex] = { ...activeDeal, stageId: newStageId };
                 return updatedDeals;
             });
         }
@@ -109,23 +106,22 @@ export function PipelineBoard({ initialDeals }: PipelineBoardProps) {
         const activeDeal = deals.find((d) => d.id === activeId);
         if (!activeDeal) return;
 
-        const isOverAColumn = STAGES.some(s => s.key === overId);
-        let newStage: DealStage;
+        const isOverAColumn = stages.some(s => s.id === overId);
+        let newStageId: string;
 
         if (isOverAColumn) {
-            newStage = overId as DealStage;
+            newStageId = overId;
         } else {
             const overDeal = deals.find((d) => d.id === overId);
-            newStage = overDeal ? overDeal.stage : activeDeal.stage;
+            newStageId = overDeal ? overDeal.stageId! : activeDeal.stageId!;
         }
 
         // Persist change
         try {
-            await updateDealStage(activeId, newStage);
+            await updateDealStage(activeId, newStageId);
             toast.success("Estágio atualizado");
         } catch {
             toast.error("Erro ao atualizar estágio");
-            // Rollback on error
             setDeals(initialDeals);
         }
     }
@@ -139,15 +135,21 @@ export function PipelineBoard({ initialDeals }: PipelineBoardProps) {
             onDragEnd={handleDragEnd}
         >
             <div className="flex gap-4 overflow-x-auto pb-6 h-full min-h-[calc(100vh-250px)]">
-                {STAGES.map((stage) => (
+                {stages.map((stage) => (
                     <PipelineColumn
-                        key={stage.key}
-                        id={stage.key}
-                        label={stage.label}
-                        color={stage.color}
-                        deals={getDealsByStage(stage.key)}
+                        key={stage.id}
+                        id={stage.id}
+                        label={stage.name}
+                        color={stage.color || "#cbd5e1"}
+                        deals={getDealsByStage(stage.id).map(d => ({ ...d, stage }))}
+                        onDealClick={(deal) => setSelectedDeal({ ...deal, stage })}
                     />
                 ))}
+                {stages.length === 0 && (
+                    <div className="flex flex-col items-center justify-center w-full min-h-[400px] border-2 border-dashed rounded-xl border-muted-foreground/25">
+                        <p className="text-muted-foreground">Nenhum estágio configurado nesta pipeline.</p>
+                    </div>
+                )}
             </div>
 
             <DragOverlay dropAnimation={{
@@ -161,6 +163,12 @@ export function PipelineBoard({ initialDeals }: PipelineBoardProps) {
             }}>
                 {activeDeal ? <DealCard deal={activeDeal} /> : null}
             </DragOverlay>
+
+            <DealDetailsDrawer
+                deal={selectedDeal}
+                isOpen={!!selectedDeal}
+                onClose={() => setSelectedDeal(null)}
+            />
         </DndContext>
     );
 }

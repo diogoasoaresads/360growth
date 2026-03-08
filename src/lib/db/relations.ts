@@ -18,6 +18,7 @@ import {
   integrationJobs,
   tasks,
   automationWorkflows,
+  dealMessages,
 } from "./schema";
 
 export const usersRelations = relations(users, ({ many }) => ({
@@ -89,7 +90,7 @@ export const contactsRelations = relations(contacts, ({ one }) => ({
   }),
 }));
 
-export const dealsRelations = relations(deals, ({ one }) => ({
+export const dealsRelations = relations(deals, ({ one, many }) => ({
   agency: one(agencies, {
     fields: [deals.agencyId],
     references: [agencies.id],
@@ -102,6 +103,15 @@ export const dealsRelations = relations(deals, ({ one }) => ({
     fields: [deals.responsibleId],
     references: [users.id],
   }),
+  activities: many(activities),
+  messages: many(dealMessages),
+}));
+
+export const dealMessagesRelations = relations(dealMessages, ({ one }) => ({
+  deal: one(deals, {
+    fields: [dealMessages.dealId],
+    references: [deals.id],
+  }),
 }));
 
 export const activitiesRelations = relations(activities, ({ one }) => ({
@@ -110,6 +120,7 @@ export const activitiesRelations = relations(activities, ({ one }) => ({
     references: [agencies.id],
   }),
   user: one(users, { fields: [activities.userId], references: [users.id] }),
+  deal: one(deals, { fields: [activities.entityId], references: [deals.id] }),
 }));
 
 export const ticketsRelations = relations(tickets, ({ one, many }) => ({
