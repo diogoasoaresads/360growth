@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { deals, pipelineStages } from "@/lib/db/schema";
+import { deals } from "@/lib/db/schema";
 import { eq, and, sql, desc } from "drizzle-orm";
 import { getActiveAgencyIdOrThrow } from "@/lib/active-context";
 
@@ -13,6 +13,14 @@ export interface ChannelMetric {
     revenue: number;
     conversionRate: number;
     avgTicket: number;
+}
+
+interface SellerResult {
+    name: string | null;
+    avatar: string | null;
+    total_deals: number;
+    won_deals: number;
+    total_revenue: number;
 }
 
 export async function getRevenueByChannel(filters?: { clientId?: string; pipelineId?: string }) {
@@ -95,7 +103,7 @@ export async function getSellerRanking(filters?: { clientId?: string; pipelineId
         ORDER BY total_revenue DESC
     `);
 
-    return results.map(r => ({
+    return (results.rows as unknown as SellerResult[]).map(r => ({
         name: String(r.name || 'Sem Responsável'),
         avatar: String(r.avatar || ''),
         deals: Number(r.won_deals || 0),

@@ -6,8 +6,6 @@ import {
     TrendingUp,
     Clock,
     BarChart,
-    PieChart,
-    Layers
 } from "lucide-react";
 
 interface ExecutiveMetricsProps {

@@ -9,7 +9,7 @@ import { ExternalLink, User as UserIcon, Tag, Globe, Flame, AlertTriangle, Moon 
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
-import { calculateDealScore, getPriorityLabel } from "@/lib/crm/crm-intelligence";
+import { calculateDealScore, getPriorityLabel, type DealScoreInput } from "@/lib/crm/crm-intelligence";
 
 interface DealExtended extends Deal {
     client: Client | null;
@@ -27,7 +27,7 @@ export function DealCard({ deal }: DealCardProps) {
     const agingColor = daysSinceUpdate < 3 ? "bg-green-500" : daysSinceUpdate < 7 ? "bg-amber-500" : "bg-red-500";
     const agingLabel = daysSinceUpdate === 0 ? "Hoje" : `Há ${daysSinceUpdate} d`;
 
-    const score = calculateDealScore(deal as any);
+    const score = calculateDealScore(deal as DealScoreInput);
     const priority = getPriorityLabel(score);
 
     const PriorityIcon = priority.icon === "Flame" ? Flame : priority.icon === "AlertTriangle" ? AlertTriangle : Moon;

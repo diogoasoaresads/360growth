@@ -3,7 +3,6 @@
 import { db } from "@/lib/db";
 import { dealMessages, messageTemplates, deals } from "@/lib/db/schema";
 import { eq, desc } from "drizzle-orm";
-import { getActiveAgencyIdOrThrow } from "@/lib/active-context";
 
 export interface SendMessageProps {
     dealId: string;
@@ -42,7 +41,6 @@ async function parseTemplate(content: string, dealId: string) {
 }
 
 export async function sendCRMMessage({ dealId, channel, content }: SendMessageProps) {
-    const agencyId = await getActiveAgencyIdOrThrow();
 
     // 1. Parsear variáveis
     const finalContent = await parseTemplate(content, dealId);
