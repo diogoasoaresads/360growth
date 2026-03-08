@@ -7,9 +7,12 @@ import { eq, and } from "drizzle-orm";
 import { getActiveAgencyIdOrThrow } from "@/lib/active-context";
 import { encryptJson, decryptJson } from "@/lib/crypto/secrets";
 import { validateAsaasApiKey } from "@/lib/integrations/providers/asaas";
+import { metaListAdAccounts } from "@/lib/integrations/providers/meta-ads";
+import { ga4ListProperties, type GA4Property, getGA4AccessToken } from "@/lib/integrations/providers/ga4";
 import { createAuditLog, getRequestMeta } from "@/lib/audit-log";
 import { revalidatePath } from "next/cache";
 import type { Integration, IntegrationProvider } from "@/lib/db/schema";
+import type { ActionResult } from "@/lib/types";
 
 async function requireAgencyAdmin() {
   const session = await auth();
@@ -216,6 +219,119 @@ export async function markIntegrationError(params: {
         eq(integrations.provider, params.provider)
       )
     );
+}
+
+export async function syncMetaAdAccounts(): Promise<ActionResult<{ synced: number }>> {
+  try {
+    const session = await requireAgencyAdmin();
+    const agencyId = await getActiveAgencyIdOrThrow();
+
+    const [row] = await db
+      .select({ secretId: integrations.secretId, status: integrations.status })
+      .from(integrations)
+      .where(
+        and(
+          eq(integrations.agencyId, agencyId),
+          eq(integrations.provider, "META_ADS"),
+          eq(integrations.status, "connected")
+        )
+      )
+      .limit(1);
+
+    if (!row?.secretId) {
+      return { success: false, error: "Meta Ads não conectado." };
+    }
+
+    const [secret] = await db
+      .select({ encryptedPayload: integrationSecrets.encryptedPayload })
+      .from(integrationSecrets)
+      .where(eq(integrationSecrets.id, row.secretId))
+      .limit(1);
+
+    if (!secret) return { success: false, error: "Credenciais não encontradas." };
+
+    const payload = decryptJson<{ longLivedToken: string; expiresAt: number }>(
+      secret.encryptedPayload
+    );
+
+    // Warn if token is within 7 days of expiry or already expired
+    const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+    if (payload.expiresAt && payload.expiresAt - Date.now() < sevenDaysMs) {
+      return { success: false, error: "Token Meta expirado ou próximo de expirar. Reconecte o Meta Ads." };
+    }
+
+    const accounts = await metaListAdAccounts(payload.longLivedToken);
+
+    await db
+      .update(integrations)
+      .set({ lastSyncedAt: new Date(), updatedAt: new Date() })
+      .where(
+        and(
+          eq(integrations.agencyId, agencyId),
+          eq(integrations.provider, "META_ADS")
+        )
+      );
+
+    const meta = await getRequestMeta();
+    await createAuditLog({
+      userId: session.user.id,
+      action: "integration_job_finished",
+      agencyId,
+      resourceType: "INTEGRATION",
+      details: { provider: "META_ADS", synced: accounts.length },
+      ...meta,
+    });
+
+    revalidatePath("/agency/integrations");
+    return { success: true, data: { synced: accounts.length } };
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : "Erro ao sincronizar Meta Ads",
+    };
+  }
+}
+
+export async function syncGA4Properties(): Promise<ActionResult<{ properties: GA4Property[] }>> {
+  try {
+    const session = await requireAgencyAdmin();
+    const agencyId = await getActiveAgencyIdOrThrow();
+
+    const accessToken = await getGA4AccessToken(agencyId);
+    if (!accessToken) {
+      return { success: false, error: "GA4 não conectado ou token inválido." };
+    }
+
+    const properties = await ga4ListProperties(accessToken);
+
+    await db
+      .update(integrations)
+      .set({ lastSyncedAt: new Date(), updatedAt: new Date() })
+      .where(
+        and(
+          eq(integrations.agencyId, agencyId),
+          eq(integrations.provider, "GA4")
+        )
+      );
+
+    const meta = await getRequestMeta();
+    await createAuditLog({
+      userId: session.user.id,
+      action: "integration_job_finished",
+      agencyId,
+      resourceType: "INTEGRATION",
+      details: { provider: "GA4", propertyCount: properties.length },
+      ...meta,
+    });
+
+    revalidatePath("/agency/integrations");
+    return { success: true, data: { properties } };
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : "Erro ao sincronizar GA4",
+    };
+  }
 }
 
 /** Apenas para uso interno — retorna apiKey descriptografada */

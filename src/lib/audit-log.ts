@@ -44,6 +44,8 @@ export type AuditAction =
   | "auth.failed"
   | "auth.impersonation_start"
   | "auth.impersonation_end"
+  | "auth.password_reset_requested"
+  | "auth.password_reset_completed"
   | "client_portal_access_created"
   | "client_portal_password_reset"
   | "client_portal_access_revoked"
