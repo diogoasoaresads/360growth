@@ -14,6 +14,7 @@ import { calculateDealScore, getPriorityLabel, type DealScoreInput } from "@/lib
 interface DealExtended extends Deal {
     client: Client | null;
     responsible: User | null;
+    stage?: PipelineStage | null;
 }
 
 interface DealCardProps {

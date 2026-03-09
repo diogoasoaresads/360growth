@@ -19,6 +19,8 @@ import {
   tasks,
   automationWorkflows,
   dealMessages,
+  pipelineStages,
+  pipelines,
 } from "./schema";
 
 export const usersRelations = relations(users, ({ many }) => ({
@@ -102,6 +104,14 @@ export const dealsRelations = relations(deals, ({ one, many }) => ({
   responsible: one(users, {
     fields: [deals.responsibleId],
     references: [users.id],
+  }),
+  stage: one(pipelineStages, {
+    fields: [deals.stageId],
+    references: [pipelineStages.id],
+  }),
+  pipeline: one(pipelines, {
+    fields: [deals.pipelineId],
+    references: [pipelines.id],
   }),
   activities: many(activities),
   messages: many(dealMessages),
@@ -213,3 +223,23 @@ export const automationWorkflowsRelations = relations(
     }),
   })
 );
+export const pipelineStagesRelations = relations(pipelineStages, ({ one, many }) => ({
+  pipeline: one(pipelines, {
+    fields: [pipelineStages.pipelineId],
+    references: [pipelines.id],
+  }),
+  deals: many(deals),
+}));
+
+export const pipelinesRelations = relations(pipelines, ({ one, many }) => ({
+  agency: one(agencies, {
+    fields: [pipelines.agencyId],
+    references: [agencies.id],
+  }),
+  client: one(clients, {
+    fields: [pipelines.clientId],
+    references: [clients.id],
+  }),
+  stages: many(pipelineStages),
+  deals: many(deals),
+}));

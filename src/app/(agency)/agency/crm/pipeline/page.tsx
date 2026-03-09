@@ -62,6 +62,7 @@ export default async function PipelinePage({
     with: {
       client: true,
       responsible: true,
+      stage: true,
     },
     orderBy: (deals, { desc }) => [desc(deals.createdAt)],
   }) : [];

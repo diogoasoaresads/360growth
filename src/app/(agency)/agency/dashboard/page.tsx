@@ -28,6 +28,7 @@ async function getAgencyStats(agencyId: string) {
 
   const allDeals = await db.query.deals.findMany({
     where: eq(deals.agencyId, agencyId),
+    with: { stage: true },
   });
 
   const dealCount = allDeals.length;
