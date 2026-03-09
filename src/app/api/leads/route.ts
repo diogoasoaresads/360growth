@@ -3,12 +3,37 @@ import { deals, clients, leadSources } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { processWorkflowEvent } from "@/lib/automation/workflow-engine";
+import { timingSafeEqual } from "crypto";
+
+/**
+ * Verifica o header x-api-key usando comparação de tempo constante para
+ * evitar ataques de timing. Retorna true apenas se a chave for válida.
+ */
+function isValidApiKey(providedKey: string | null): boolean {
+    const secret = process.env.LEADS_WEBHOOK_API_KEY;
+    if (!secret || !providedKey) return false;
+    try {
+        const a = Buffer.from(secret);
+        const b = Buffer.from(providedKey);
+        if (a.length !== b.length) return false;
+        return timingSafeEqual(a, b);
+    } catch {
+        return false;
+    }
+}
 
 /**
  * Ingestão de Leads Externos (Webhook)
  * POST /api/leads
+ *
+ * Requer header: x-api-key: <LEADS_WEBHOOK_API_KEY>
  */
 export async function POST(req: Request) {
+    const apiKey = req.headers.get("x-api-key");
+    if (!isValidApiKey(apiKey)) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     try {
         const body = await req.json();
         const {
