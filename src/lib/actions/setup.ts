@@ -127,9 +127,9 @@ export async function bootstrapDemoData(): Promise<
     // ── 6. Deal ────────────────────────────────────────────────────────────
     const [existingDeal] = await db.select().from(deals).where(eq(deals.agencyId, agencyId)).limit(1);
     if (existingDeal) {
-      await db.update(deals).set({ title: "Projeto de Marketing Digital", value: "5000.00", stage: "PROPOSAL", updatedAt: new Date() }).where(eq(deals.id, existingDeal.id));
+      await db.update(deals).set({ title: "Projeto de Marketing Digital", value: "5000.00", stageId: "PROPOSAL", updatedAt: new Date() }).where(eq(deals.id, existingDeal.id));
     } else {
-      await db.insert(deals).values({ agencyId, clientId, title: "Projeto de Marketing Digital", value: "5000.00", stage: "PROPOSAL", description: "Gestão de campanhas de performance + SEO" });
+      await db.insert(deals).values({ agencyId, clientId, title: "Projeto de Marketing Digital", value: "5000.00", stageId: "PROPOSAL", description: "Gestão de campanhas de performance + SEO" });
       created.push("Deal demo");
     }
 
