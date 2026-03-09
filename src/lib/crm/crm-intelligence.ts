@@ -94,6 +94,7 @@ interface ChannelMetric {
     channel: string;
     revenue: number;
     deals: number;
+    avgTicket: number;
 }
 
 /**
@@ -117,7 +118,7 @@ export function getGlobalInsights(
     }
 
     // Insight de Ticket Médio
-    const channelsWithHighTicket = channelData.filter(c => c.avgTicket > metrics.totalValue / (metrics.totalDeals || 1));
+    const channelsWithHighTicket = channelData.filter(c => c.avgTicket > (metrics.totalValue / (metrics.totalDeals || 1)));
     if (channelsWithHighTicket.length > 0) {
         globalInsights.push(`${channelsWithHighTicket[0].channel} possui um ticket médio superior à média geral.`);
     }

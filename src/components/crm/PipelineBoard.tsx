@@ -19,6 +19,7 @@ import {
 } from "@dnd-kit/sortable";
 import { PipelineColumn } from "./PipelineColumn";
 import { DealCard } from "./DealCard";
+import { Deal, Client, User, PipelineStage } from "@/lib/db/schema";
 import { updateDealStage } from "@/lib/actions/deal.actions";
 import { toast } from "sonner";
 import { DealDetailsDrawer } from "./DealDetailsDrawer";
