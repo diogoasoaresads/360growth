@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { PortalSidebar } from "@/components/shared/portal-sidebar";
+import { NotificationBell } from "@/components/shared/NotificationBell";
 import { db } from "@/lib/db";
 import { clients, agencies, userContexts } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
@@ -65,9 +66,17 @@ export default async function PortalLayout({
   return (
     <div className="flex h-screen overflow-hidden">
       <PortalSidebar />
-      <main className="flex-1 overflow-y-auto bg-background">
-        {children}
-      </main>
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <header className="h-16 border-b flex items-center justify-between px-6 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="font-semibold text-sm">Painel do Cliente</div>
+          <div className="flex items-center gap-4">
+            <NotificationBell isPortal />
+          </div>
+        </header>
+        <main className="flex-1 overflow-y-auto bg-background p-0">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }

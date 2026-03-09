@@ -53,6 +53,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=deps /app/node_modules ./node_modules
 
 # Migration files and drizzle config (needed by drizzle-kit migrate at startup)
+COPY --from=builder --chown=nextjs:nodejs /app/src/lib/db ./src/lib/db
 COPY --from=builder --chown=nextjs:nodejs /app/drizzle ./drizzle
 COPY --from=builder --chown=nextjs:nodejs /app/drizzle.config.ts ./drizzle.config.ts
 COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json

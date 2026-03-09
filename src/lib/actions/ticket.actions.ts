@@ -2,9 +2,10 @@
 
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { tickets, ticketMessages, activities } from "@/lib/db/schema";
+import { tickets, ticketMessages, activities, agencyUsers } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { createNotification } from "./notification.actions";
 import {
   createTicketSchema,
   updateTicketSchema,
@@ -18,6 +19,7 @@ import type {
 import { validatePlanLimit } from "@/lib/usage/agency-usage";
 import { getActiveAgencyIdOrThrow } from "@/lib/active-context";
 import { isFeatureEnabled } from "@/lib/feature-flags/agency-flags";
+import { processWorkflowEvent } from "../automation/workflow-engine";
 
 export async function createTicket(input: CreateTicketInput) {
   const session = await auth();
@@ -60,8 +62,34 @@ export async function createTicket(input: CreateTicketInput) {
     description: `Ticket criado: ${ticket.subject}`,
   });
 
+  // Notify Agency Team
+  const team = await db.query.agencyUsers.findMany({
+    where: eq(agencyUsers.agencyId, agencyId),
+  });
+
+  for (const member of team) {
+    if (member.userId !== session.user.id) {
+      await createNotification({
+        userId: member.userId,
+        agencyId,
+        title: "Novo Ticket",
+        message: `${session.user.name} criou um novo ticket: ${ticket.subject}`,
+        type: "TICKET",
+        link: `/agency/tickets/${ticket.id}`,
+      });
+    }
+  }
+
   revalidatePath("/agency/tickets");
   revalidatePath("/portal/tickets");
+
+  // Trigger Automations
+  await processWorkflowEvent(agencyId, "TICKET_CREATED", {
+    entityId: ticket.id,
+    entityType: "TICKET",
+    metadata: { priority: ticketData.priority },
+  });
+
   return ticket;
 }
 
@@ -99,6 +127,35 @@ export async function updateTicketStatus(id: string, input: UpdateTicketInput) {
     });
   }
 
+  // Notify Client and Assigned User
+  const [ticketDetails] = await db.select().from(tickets).where(eq(tickets.id, id));
+  if (ticketDetails) {
+    const notifyUsers = new Set([ticketDetails.createdBy, ticketDetails.assignedTo].filter(Boolean) as string[]);
+    await Promise.all(
+      Array.from(notifyUsers).map(async (userId) => {
+        if (userId !== session.user.id) {
+          await createNotification({
+            userId,
+            agencyId,
+            title: "Atualização de Ticket",
+            message: `O status do ticket "${ticketDetails.subject}" foi alterado para ${parsed.data.status || ticketDetails.status}`,
+            type: "TICKET",
+            link: userId === ticketDetails.createdBy ? `/portal/tickets/${id}` : `/agency/tickets/${id}`,
+          });
+        }
+      })
+    );
+  }
+
+  // Trigger Automations
+  if (parsed.data.status) {
+    await processWorkflowEvent(agencyId, "TICKET_STATUS_CHANGED", {
+      entityId: id,
+      entityType: "TICKET",
+      currentValue: parsed.data.status,
+    });
+  }
+
   revalidatePath("/agency/tickets");
   return ticket;
 }
@@ -125,6 +182,24 @@ export async function addTicketMessage(ticketId: string, input: AddTicketMessage
     .update(tickets)
     .set({ updatedAt: new Date() })
     .where(eq(tickets.id, ticketId));
+
+  // Notify other party
+  const [ticket] = await db.select().from(tickets).where(eq(tickets.id, ticketId));
+  if (ticket) {
+    const isAgencySide = session.user.role !== "CLIENT";
+    const recipientId = isAgencySide ? ticket.createdBy : ticket.assignedTo;
+
+    if (recipientId && recipientId !== session.user.id) {
+      await createNotification({
+        userId: recipientId,
+        agencyId: ticket.agencyId,
+        title: "Nova Mensagem",
+        message: `${session.user.name} respondeu ao ticket: ${ticket.subject}`,
+        type: "TICKET",
+        link: isAgencySide ? `/portal/tickets/${ticketId}` : `/agency/tickets/${ticketId}`,
+      });
+    }
+  }
 
   revalidatePath(`/agency/tickets/${ticketId}`);
   revalidatePath(`/portal/tickets/${ticketId}`);

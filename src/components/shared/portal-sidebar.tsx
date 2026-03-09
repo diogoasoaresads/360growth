@@ -6,13 +6,18 @@ import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { UserNav } from "./user-nav";
-import { LayoutDashboard, TicketIcon, ChevronRight } from "lucide-react";
+import { LayoutDashboard, TicketIcon, Briefcase, ChevronRight } from "lucide-react";
 
 const navItems = [
   {
     label: "Dashboard",
     href: "/portal/dashboard",
     icon: LayoutDashboard,
+  },
+  {
+    label: "Projetos",
+    href: "/portal/projects",
+    icon: Briefcase,
   },
   {
     label: "Meus Tickets",

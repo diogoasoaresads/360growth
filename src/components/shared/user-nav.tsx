@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { signOut } from "next-auth/react";
 import { useSession } from "next-auth/react";
 import {
@@ -19,11 +20,11 @@ export function UserNav() {
 
   const initials = user?.name
     ? user.name
-        .split(" ")
-        .map((n) => n[0])
-        .slice(0, 2)
-        .join("")
-        .toUpperCase()
+      .split(" ")
+      .map((n) => n[0])
+      .slice(0, 2)
+      .join("")
+      .toUpperCase()
     : "??";
 
   return (
@@ -45,13 +46,25 @@ export function UserNav() {
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>
-          <User className="mr-2 h-4 w-4" />
-          Perfil
+        <DropdownMenuItem asChild>
+          <Link href={
+            user?.role === "SUPER_ADMIN" ? "/admin/settings" :
+              user?.role === "CLIENT" ? "/portal/settings" :
+                "/agency/settings"
+          }>
+            <User className="mr-2 h-4 w-4" />
+            Perfil
+          </Link>
         </DropdownMenuItem>
-        <DropdownMenuItem>
-          <Settings className="mr-2 h-4 w-4" />
-          Configurações
+        <DropdownMenuItem asChild>
+          <Link href={
+            user?.role === "SUPER_ADMIN" ? "/admin/settings" :
+              user?.role === "CLIENT" ? "/portal/settings" :
+                "/agency/settings"
+          }>
+            <Settings className="mr-2 h-4 w-4" />
+            Configurações
+          </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem

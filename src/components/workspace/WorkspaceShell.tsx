@@ -13,6 +13,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { UserNav } from "@/components/shared/user-nav";
+import { NotificationBell } from "@/components/shared/NotificationBell";
 import { ContextSwitcherClient } from "@/components/admin/context-switcher-client";
 import { AgencyContextBanner } from "@/components/admin/agency-context-banner";
 import {
@@ -21,8 +22,24 @@ import {
   PanelLeftOpen,
   Search,
   Home,
+  LayoutDashboard,
+  Building2,
+  Users,
+  CreditCard,
+  DollarSign,
+  Settings,
+  SlidersHorizontal,
+  Mail,
+  ScrollText,
+  Activity,
+  Zap,
+  DatabaseZap,
+  Plug,
+  FlaskConical,
+  Ticket,
 } from "lucide-react";
 import type { NavGroup } from "@/config/navigation";
+import type { LucideIcon } from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -69,6 +86,24 @@ const SEGMENT_LABELS: Record<string, string> = {
   portal: "Portal",
 };
 
+const ICON_MAP: Record<string, LucideIcon> = {
+  dashboard: LayoutDashboard,
+  agencies: Building2,
+  users: Users,
+  tickets: Ticket,
+  plans: CreditCard,
+  billing: DollarSign,
+  settings: Settings,
+  config: SlidersHorizontal,
+  templates: Mail,
+  logs: ScrollText,
+  health: Activity,
+  jobs: Zap,
+  db: DatabaseZap,
+  integrations: Plug,
+  qa: FlaskConical,
+};
+
 function buildBreadcrumbs(pathname: string) {
   const segments = pathname.split("/").filter(Boolean);
   const crumbs: { label: string; href: string }[] = [];
@@ -94,7 +129,7 @@ function NavLink({
   pathname: string;
 }) {
   if (!item.href) return null;
-  const Icon = item.icon;
+  const Icon = item.icon ? ICON_MAP[item.icon] : null;
   const isActive = item.exact
     ? pathname === item.href
     : pathname.startsWith(item.href);
@@ -237,6 +272,9 @@ function Topbar({
           <span>Buscar…</span>
           <kbd className="ml-auto text-[10px] font-mono rounded bg-background border px-1">⌘K</kbd>
         </div>
+
+        {/* Notifications */}
+        <NotificationBell />
 
         {/* Context switcher */}
         <ContextSwitcherClient

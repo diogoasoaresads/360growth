@@ -3,8 +3,8 @@ import { z } from "zod";
 export const createTicketSchema = z.object({
   subject: z.string().min(5, "Assunto deve ter no mínimo 5 caracteres"),
   clientId: z.string().uuid("ID de cliente inválido"),
-  priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]).default("MEDIUM"),
-  type: z.enum(["SUPPORT", "FEATURE_REQUEST", "BUG", "BILLING", "OTHER"]).default("SUPPORT"),
+  priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]),
+  type: z.enum(["SUPPORT", "FEATURE_REQUEST", "BUG", "BILLING", "OTHER"]),
   message: z.string().min(10, "Mensagem deve ter no mínimo 10 caracteres"),
 });
 

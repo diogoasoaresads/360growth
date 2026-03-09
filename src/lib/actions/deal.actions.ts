@@ -2,70 +2,130 @@
 
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { deals } from "@/lib/db/schema";
+import { deals, activities, dealStageHistory, pipelineStages } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { createDealSchema, updateDealSchema } from "@/lib/validations/deal";
-import type { CreateDealInput, UpdateDealInput } from "@/lib/validations/deal";
-import { validatePlanLimit } from "@/lib/usage/agency-usage";
 import { getActiveAgencyIdOrThrow } from "@/lib/active-context";
-import { isFeatureEnabled } from "@/lib/feature-flags/agency-flags";
+import { processWorkflowEvent } from "../automation/workflow-engine";
 
-export async function createDeal(input: CreateDealInput) {
+/**
+ * Create a new deal
+ */
+export async function createDeal(data: typeof deals.$inferInsert) {
   const session = await auth();
   if (!session) throw new Error("Unauthorized");
 
   const agencyId = await getActiveAgencyIdOrThrow();
 
-  if (!await isFeatureEnabled(agencyId, "deals_enabled")) {
-    throw new Error("Módulo de deals está desabilitado para esta agência.");
+  const [deal] = await db.insert(deals).values({
+    ...data,
+    agencyId,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  }).returning();
+
+  if (deal) {
+    await db.insert(activities).values({
+      agencyId,
+      entityType: "DEAL",
+      entityId: deal.id,
+      userId: session.user.id,
+      type: "NOTE",
+      description: "Negócio criado",
+    });
   }
 
-  const parsed = createDealSchema.safeParse(input);
-  if (!parsed.success) throw new Error("Dados inválidos");
-
-  await validatePlanLimit({ agencyId, actorUserId: session.user.id, resourceType: "deals", context: { action: "createDeal" } });
-
-  const [deal] = await db
-    .insert(deals)
-    .values({
-      ...parsed.data,
-      agencyId,
-      value: parsed.data.value !== undefined ? String(parsed.data.value) : null,
-    })
-    .returning();
-
-  revalidatePath("/agency/crm");
+  revalidatePath("/agency/crm/pipeline");
   return deal;
 }
 
-export async function updateDeal(id: string, input: UpdateDealInput) {
-  const agencyId = await getActiveAgencyIdOrThrow();
-  const parsed = updateDealSchema.safeParse(input);
-  if (!parsed.success) throw new Error("Dados inválidos");
+/**
+ * Update the stage of a deal (Kanban Move)
+ */
+export async function updateDealStage(dealId: string, stageId: string) {
+  const session = await auth();
+  if (!session) throw new Error("Unauthorized");
 
-  const { value, ...rest } = parsed.data;
+  const agencyId = await getActiveAgencyIdOrThrow();
+
+  // Get current deal state to track history
+  const currentDeal = await db.query.deals.findFirst({
+    where: and(eq(deals.id, dealId), eq(deals.agencyId, agencyId)),
+  });
+
+  if (!currentDeal) throw new Error("Deal not found");
 
   const [deal] = await db
     .update(deals)
     .set({
-      ...rest,
-      ...(value !== undefined ? { value: String(value) } : {}),
+      stageId,
+      lastActivityAt: new Date(),
+      updatedAt: new Date()
+    })
+    .where(and(eq(deals.id, dealId), eq(deals.agencyId, agencyId)))
+    .returning();
+
+  if (deal) {
+    // Record history for Pipeline Velocity
+    await db.insert(dealStageHistory).values({
+      dealId,
+      fromStageId: currentDeal.stageId,
+      toStageId: stageId,
+      movedBy: session.user.id,
+    });
+
+    // Record activity
+    const stage = await db.query.pipelineStages.findFirst({
+      where: eq(pipelineStages.id, stageId)
+    });
+
+    await db.insert(activities).values({
+      agencyId,
+      entityType: "DEAL",
+      entityId: dealId,
+      userId: session.user.id,
+      type: "STATUS_CHANGE",
+      description: `Negócio movido para: ${stage?.name || 'Novo Estágio'}`,
+    });
+
+    // Handle Closed States
+    if (stage?.isClosedWon || stage?.isClosedLost) {
+      await db.update(deals).set({
+        status: stage.isClosedWon ? "WON" : "LOST",
+        closedAt: new Date(),
+      }).where(eq(deals.id, dealId));
+    }
+
+    // Trigger Automations
+    await processWorkflowEvent(agencyId, "DEAL_STAGE_CHANGED", {
+      entityId: dealId,
+      entityType: "DEAL",
+      currentValue: stageId,
+    });
+  }
+
+  revalidatePath("/agency/crm/pipeline");
+  return deal;
+}
+
+/**
+ * Update deal information
+ */
+export async function updateDeal(id: string, data: Partial<typeof deals.$inferInsert>) {
+  const session = await auth();
+  if (!session) throw new Error("Unauthorized");
+
+  const agencyId = await getActiveAgencyIdOrThrow();
+
+  const [deal] = await db
+    .update(deals)
+    .set({
+      ...data,
       updatedAt: new Date(),
     })
     .where(and(eq(deals.id, id), eq(deals.agencyId, agencyId)))
     .returning();
 
-  revalidatePath("/agency/crm");
+  revalidatePath("/agency/crm/pipeline");
   return deal;
-}
-
-export async function deleteDeal(id: string) {
-  const agencyId = await getActiveAgencyIdOrThrow();
-
-  await db
-    .delete(deals)
-    .where(and(eq(deals.id, id), eq(deals.agencyId, agencyId)));
-
-  revalidatePath("/agency/crm");
 }

@@ -1,125 +1,132 @@
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
-import { deals } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { deals, clients } from "@/lib/db/schema";
+import { eq, and, asc } from "drizzle-orm";
 import { getActiveAgencyIdOrThrow } from "@/lib/active-context";
 import { isFeatureEnabled } from "@/lib/feature-flags/agency-flags";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
-import type { DealStage } from "@/lib/db/schema";
+import { Plus, Settings2, BarChart3 } from "lucide-react";
+import Link from "next/link";
 import { PageContainer } from "@/components/workspace/PageContainer";
+import { PipelineBoard } from "@/components/crm/PipelineBoard";
+import type { Deal, Client, User } from "@/lib/db/schema";
+import { CRMSelector } from "@/components/crm/CRMSelector";
+import { createPipeline, getPipelines } from "@/lib/actions/pipeline.actions";
 
 export const metadata = {
-  title: "Pipeline CRM | Agência",
+  title: "CRM | 360growth",
 };
 
-const STAGES: { key: DealStage; label: string; color: string }[] = [
-  { key: "LEAD", label: "Lead", color: "bg-slate-100 border-slate-200" },
-  { key: "QUALIFIED", label: "Qualificado", color: "bg-blue-50 border-blue-200" },
-  { key: "PROPOSAL", label: "Proposta", color: "bg-purple-50 border-purple-200" },
-  { key: "NEGOTIATION", label: "Negociação", color: "bg-amber-50 border-amber-200" },
-  { key: "CLOSED_WON", label: "Ganho", color: "bg-green-50 border-green-200" },
-  { key: "CLOSED_LOST", label: "Perdido", color: "bg-red-50 border-red-200" },
-];
-
-async function getDealsWithClients(agencyId: string) {
-  const result = await db.query.deals.findMany({
-    where: eq(deals.agencyId, agencyId),
-    with: {
-      client: true,
-    },
-    orderBy: (deals, { desc }) => [desc(deals.createdAt)],
-  });
-  return result;
+interface DealWithClient extends Deal {
+  client: Client | null;
+  responsible: User | null;
 }
 
-export default async function PipelinePage() {
+export default async function PipelinePage({
+  searchParams,
+}: {
+  searchParams: { clientId?: string; pipelineId?: string };
+}) {
   const agencyId = await getActiveAgencyIdOrThrow();
 
   if (!await isFeatureEnabled(agencyId, "deals_enabled")) {
     redirect("/agency/dashboard");
   }
 
-  const allDeals = await getDealsWithClients(agencyId);
+  // 1. Get Clients
+  const allClients = await db.query.clients.findMany({
+    where: eq(clients.agencyId, agencyId),
+    orderBy: [asc(clients.name)],
+  });
 
-  const dealsByStage = STAGES.reduce(
-    (acc, stage) => {
-      acc[stage.key] = allDeals.filter((d) => d.stage === stage.key);
-      return acc;
+  const activeClientId = searchParams.clientId || allClients[0]?.id;
+
+  // 2. Get Pipelines for active client
+  let clientPipelines = activeClientId ? await getPipelines(activeClientId) : [];
+
+  // 3. Fallback: Create default pipeline if none exists for client
+  if (activeClientId && clientPipelines.length === 0) {
+    await createPipeline(activeClientId, "Pipeline Principal", "AGENCY");
+    clientPipelines = await getPipelines(activeClientId);
+  }
+
+  const activePipelineId = searchParams.pipelineId || clientPipelines[0]?.id;
+  const activePipeline = clientPipelines.find(p => p.id === activePipelineId);
+
+  // 4. Get Deals for active pipeline
+  const pipelineDeals = activePipelineId ? await db.query.deals.findMany({
+    where: and(
+      eq(deals.agencyId, agencyId),
+      eq(deals.pipelineId, activePipelineId)
+    ),
+    with: {
+      client: true,
+      responsible: true,
     },
-    {} as Record<DealStage, typeof allDeals>
-  );
+    orderBy: (deals, { desc }) => [desc(deals.createdAt)],
+  }) : [];
 
   return (
-    <div className="p-6">
-      <PageContainer
-        title="Pipeline CRM"
-        description="Gerencie seus negócios em andamento"
-        actions={
-          <Button>
+    <PageContainer
+      title="Pipeline CRM"
+      description="Gerencie seus negócios e funis de forma estratégica"
+      className="animate-fade-in-up"
+      actions={
+        <div className="flex items-center gap-2">
+          <Link href="/agency/crm/analytics">
+            <Button variant="outline" size="sm" className="rounded-full hover:bg-primary hover:text-white transition-premium group shadow-sm">
+              <BarChart3 className="mr-2 h-4 w-4 group-hover:scale-110 transition-transform" />
+              Relatórios & Insights
+            </Button>
+          </Link>
+          <Button variant="outline" size="sm" className="rounded-full transition-premium shadow-sm">
+            <Settings2 className="mr-2 h-4 w-4" />
+            Configurar Pipeline
+          </Button>
+          <Button size="sm" className="rounded-full bg-primary hover:bg-primary/90 transition-premium shadow-md">
             <Plus className="mr-2 h-4 w-4" />
             Novo Negócio
           </Button>
-        }
-      >
-      {/* Kanban Board */}
-      <div className="flex gap-4 overflow-x-auto pb-4">
-        {STAGES.map((stage) => {
-          const stageDeals = dealsByStage[stage.key] ?? [];
-          const totalValue = stageDeals.reduce(
-            (sum, d) => sum + parseFloat(d.value ?? "0"),
-            0
-          );
+        </div>
+      }
+    >
+      <div className="flex flex-col gap-6">
+        {/* Filters Header */}
+        <div className="flex items-center gap-4 glass-card p-5 rounded-2xl border-none shadow-2xl shadow-slate-200/50">
+          <CRMSelector
+            items={allClients}
+            defaultValue={activeClientId}
+            paramName="clientId"
+            label="Cliente"
+            placeholder="Selecione o Cliente"
+          />
 
-          return (
-            <div
-              key={stage.key}
-              className={`flex-shrink-0 w-72 rounded-xl border-2 ${stage.color} p-3`}
-            >
-              <div className="flex items-center justify-between mb-3">
-                <div>
-                  <h3 className="font-semibold text-sm">{stage.label}</h3>
-                  <p className="text-xs text-muted-foreground">
-                    {stageDeals.length} negócio{stageDeals.length !== 1 ? "s" : ""}
-                  </p>
-                </div>
-                {totalValue > 0 && (
-                  <Badge variant="outline" className="text-xs">
-                    R$ {totalValue.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                  </Badge>
-                )}
-              </div>
+          <CRMSelector
+            items={clientPipelines}
+            defaultValue={activePipelineId}
+            paramName="pipelineId"
+            label="Pipeline"
+            placeholder="Selecione a Pipeline"
+          />
 
-              <div className="space-y-2 min-h-[200px]">
-                {stageDeals.length === 0 ? (
-                  <div className="flex items-center justify-center h-24 rounded-lg border-2 border-dashed border-muted-foreground/20">
-                    <p className="text-xs text-muted-foreground">Nenhum negócio</p>
-                  </div>
-                ) : (
-                  stageDeals.map((deal) => (
-                    <Card key={deal.id} className="shadow-sm cursor-pointer hover:shadow-md transition-shadow">
-                      <CardContent className="p-3">
-                        <p className="font-medium text-sm">{deal.title}</p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {(deal as { client?: { name?: string } }).client?.name ?? "Cliente não encontrado"}
-                        </p>
-                        {deal.value && (
-                          <p className="text-sm font-semibold text-primary mt-2">
-                            R$ {parseFloat(deal.value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                          </p>
-                        )}
-                      </CardContent>
-                    </Card>
-                  ))
-                )}
-              </div>
+          <div className="ml-auto flex items-center gap-2">
+            {/* Basic metrics can go here */}
+            <div className="px-5 py-2.5 bg-primary/5 rounded-xl border border-primary/10 shadow-inner">
+              <p className="text-[10px] font-extrabold text-primary uppercase tracking-widest mb-0.5">Total em Aberto</p>
+              <p className="text-lg font-extrabold tracking-tight">
+                {pipelineDeals.reduce((acc, d) => acc + Number(d.value || 0), 0)
+                  .toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+              </p>
             </div>
-          );
-        })}
+          </div>
+        </div>
+
+        <PipelineBoard
+          initialDeals={pipelineDeals as DealWithClient[]}
+          stages={activePipeline?.stages || []}
+        />
       </div>
-      </PageContainer>
-    </div>
+    </PageContainer>
   );
 }
+

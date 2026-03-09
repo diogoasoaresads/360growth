@@ -16,6 +16,9 @@ import {
   integrations,
   integrationSecrets,
   integrationJobs,
+  tasks,
+  automationWorkflows,
+  dealMessages,
 } from "./schema";
 
 export const usersRelations = relations(users, ({ many }) => ({
@@ -29,6 +32,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   responsibleDeals: many(deals),
   activities: many(activities),
   auditLogs: many(auditLogs),
+  tasks: many(tasks),
 }));
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
@@ -52,6 +56,8 @@ export const agenciesRelations = relations(agencies, ({ one, many }) => ({
   activities: many(activities),
   auditLogs: many(auditLogs),
   integrations: many(integrations),
+  tasks: many(tasks),
+  automationWorkflows: many(automationWorkflows),
 }));
 
 export const agencyUsersRelations = relations(agencyUsers, ({ one }) => ({
@@ -84,7 +90,7 @@ export const contactsRelations = relations(contacts, ({ one }) => ({
   }),
 }));
 
-export const dealsRelations = relations(deals, ({ one }) => ({
+export const dealsRelations = relations(deals, ({ one, many }) => ({
   agency: one(agencies, {
     fields: [deals.agencyId],
     references: [agencies.id],
@@ -97,6 +103,15 @@ export const dealsRelations = relations(deals, ({ one }) => ({
     fields: [deals.responsibleId],
     references: [users.id],
   }),
+  activities: many(activities),
+  messages: many(dealMessages),
+}));
+
+export const dealMessagesRelations = relations(dealMessages, ({ one }) => ({
+  deal: one(deals, {
+    fields: [dealMessages.dealId],
+    references: [deals.id],
+  }),
 }));
 
 export const activitiesRelations = relations(activities, ({ one }) => ({
@@ -105,6 +120,7 @@ export const activitiesRelations = relations(activities, ({ one }) => ({
     references: [agencies.id],
   }),
   user: one(users, { fields: [activities.userId], references: [users.id] }),
+  deal: one(deals, { fields: [activities.entityId], references: [deals.id] }),
 }));
 
 export const ticketsRelations = relations(tickets, ({ one, many }) => ({
@@ -176,3 +192,24 @@ export const integrationJobsRelations = relations(integrationJobs, ({ one }) => 
     references: [integrations.id],
   }),
 }));
+
+export const tasksRelations = relations(tasks, ({ one }) => ({
+  agency: one(agencies, {
+    fields: [tasks.agencyId],
+    references: [agencies.id],
+  }),
+  responsible: one(users, {
+    fields: [tasks.responsibleId],
+    references: [users.id],
+  }),
+}));
+
+export const automationWorkflowsRelations = relations(
+  automationWorkflows,
+  ({ one }) => ({
+    agency: one(agencies, {
+      fields: [automationWorkflows.agencyId],
+      references: [agencies.id],
+    }),
+  })
+);
