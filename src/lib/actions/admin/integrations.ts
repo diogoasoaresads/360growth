@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { integrations } from "@/lib/db/schema";
+import { integrations, type Integration } from "@/lib/db/schema";
 import { auth } from "@/lib/auth";
 import { desc } from "drizzle-orm";
 
@@ -36,9 +36,9 @@ export async function getIntegrationStats() {
 
     const stats = {
         total: all.length,
-        connected: all.filter((i: any) => i.status === "connected").length,
-        error: all.filter((i: any) => i.status === "error").length,
-        byProvider: all.reduce((acc: Record<string, number>, curr: any) => {
+        connected: all.filter((i: Integration) => i.status === "connected").length,
+        error: all.filter((i: Integration) => i.status === "error").length,
+        byProvider: all.reduce((acc: Record<string, number>, curr: Integration) => {
             acc[curr.provider] = (acc[curr.provider] || 0) + 1;
             return acc;
         }, {} as Record<string, number>),
