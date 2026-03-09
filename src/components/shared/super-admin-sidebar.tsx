@@ -25,26 +25,27 @@ import {
 } from "lucide-react";
 
 const adminNavItems = [
-  { label: "Dashboard",      href: "/admin",                  icon: LayoutDashboard, exact: true },
-  { label: "Agências",       href: "/admin/agencies",         icon: Building2 },
-  { label: "Planos",         href: "/admin/plans",            icon: CreditCard },
-  { label: "Usuários",       href: "/admin/users",            icon: Users },
-  { label: "Tickets",        href: "/admin/tickets",          icon: Ticket },
-  { label: "Faturamento",    href: "/admin/billing",          icon: DollarSign },
-  { label: "Configurações",  href: "/admin/settings",         icon: Settings },
-  { label: "Config Center",  href: "/admin/config",           icon: SlidersHorizontal },
-  { label: "Templates",      href: "/admin/templates",        icon: Mail },
-  { label: "Logs",           href: "/admin/logs",             icon: ScrollText },
-  { label: "Health",         href: "/admin/health",           icon: Activity },
-  { label: "Jobs",           href: "/admin/system/jobs",      icon: Zap },
-  { label: "DB Migrate",     href: "/admin/system/db-migrate", icon: DatabaseZap },
+  { label: "Dashboard", href: "/admin", icon: LayoutDashboard, exact: true },
+  { label: "Agências", href: "/admin/agencies", icon: Building2 },
+  { label: "Planos", href: "/admin/plans", icon: CreditCard },
+  { label: "Usuários", href: "/admin/users", icon: Users },
+  { label: "Tickets", href: "/admin/tickets", icon: Ticket },
+  { label: "Faturamento", href: "/admin/billing", icon: DollarSign },
+  { label: "Configurações", href: "/admin/settings", icon: Settings },
+  { label: "Config Center", href: "/admin/config", icon: SlidersHorizontal },
+  { label: "Templates", href: "/admin/templates", icon: Mail },
+  { label: "Logs", href: "/admin/logs", icon: ScrollText },
+  { label: "Health", href: "/admin/health", icon: Activity },
+  { label: "Jobs", href: "/admin/system/jobs", icon: Zap },
+  { label: "DB Migrate", href: "/admin/system/db-migrate", icon: DatabaseZap },
+  { label: "Integrações", href: "/admin/integrations", icon: Zap },
 ];
 
 const agencyNavItems = [
-  { label: "Dashboard",  href: "/agency/dashboard",    icon: LayoutDashboard, exact: true },
-  { label: "Clientes",   href: "/agency/crm/clients",  icon: Users },
-  { label: "Pipeline",   href: "/agency/crm/pipeline", icon: BarChart3 },
-  { label: "Tickets",    href: "/agency/tickets",      icon: Ticket },
+  { label: "Dashboard", href: "/agency/dashboard", icon: LayoutDashboard, exact: true },
+  { label: "Clientes", href: "/agency/crm/clients", icon: Users },
+  { label: "Pipeline", href: "/agency/crm/pipeline", icon: BarChart3 },
+  { label: "Tickets", href: "/agency/tickets", icon: Ticket },
 ];
 
 interface SuperAdminSidebarProps {
