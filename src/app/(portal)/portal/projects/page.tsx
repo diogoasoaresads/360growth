@@ -71,7 +71,7 @@ export default async function ClientProjectsPage() {
                                 <CardHeader className="pb-4">
                                     <div className="flex justify-between items-start mb-1">
                                         <Badge variant="secondary" className="text-[10px] uppercase font-bold tracking-wider">
-                                            {stageLabels[deal.stage] || deal.stage}
+                                            {stageLabels[deal.stageId ?? ""] || deal.stageId || "—"}
                                         </Badge>
                                         <span className="text-xs text-muted-foreground">
                                             ID: {deal.id.slice(0, 8)}

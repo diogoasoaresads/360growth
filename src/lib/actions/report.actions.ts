@@ -36,7 +36,7 @@ export async function exportDealsCSV(from?: Date, to?: Date) {
         Titulo: d.title,
         Cliente: d.client?.name ?? "N/A",
         Valor: d.value ?? "0",
-        Estagio: d.stage,
+        Estagio: d.stageId,
         DataCriacao: d.createdAt.toISOString()
     }));
 
