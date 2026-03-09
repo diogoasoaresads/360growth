@@ -83,13 +83,13 @@ async function getReportData(agencyId: string, range: string = "all") {
   // Deals by stage
   const dealsByStage = await db
     .select({
-      stage: deals.stage,
+      stage: deals.stageId,
       count: count(),
       totalValue: sum(deals.value),
     })
     .from(deals)
     .where(baseFilter(deals))
-    .groupBy(deals.stage);
+    .groupBy(deals.stageId);
 
   const wonDeals = dealsByStage.find((d) => d.stage === "CLOSED_WON");
   const lostDeals = dealsByStage.find((d) => d.stage === "CLOSED_LOST");
