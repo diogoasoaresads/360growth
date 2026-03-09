@@ -3,7 +3,7 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Card, CardContent } from "@/components/ui/card";
-import type { Deal, Client, User } from "@/lib/db/schema";
+import type { Deal, Client, User, PipelineStage } from "@/lib/db/schema";
 import { differenceInDays } from "date-fns";
 import { ExternalLink, User as UserIcon, Tag, Globe, Flame, AlertTriangle, Moon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
