@@ -10,6 +10,8 @@ import { PageContainer } from "@/components/workspace/PageContainer";
 import { subDays, format } from "date-fns";
 import { DashboardCharts } from "@/components/dashboard/DashboardCharts";
 import Link from "next/link";
+import { AIBriefing } from "@/components/dashboard/AIBriefing";
+import { getDealInsights } from "@/lib/crm/crm-intelligence";
 
 export const metadata = {
   title: "Dashboard | Agência",
@@ -24,10 +26,11 @@ async function getAgencyStats(agencyId: string) {
     .from(clients)
     .where(eq(clients.agencyId, agencyId));
 
-  const [dealCount] = await db
-    .select({ count: count() })
-    .from(deals)
-    .where(eq(deals.agencyId, agencyId));
+  const allDeals = await db.query.deals.findMany({
+    where: eq(deals.agencyId, agencyId),
+  });
+
+  const dealCount = allDeals.length;
 
   const [openTicketCount] = await db
     .select({ count: count() })
@@ -35,13 +38,10 @@ async function getAgencyStats(agencyId: string) {
     .where(and(eq(tickets.agencyId, agencyId), eq(tickets.status, "OPEN")));
 
   // 2. Conversion Rate (WON / TOTAL)
-  const [wonDeals] = await db
-    .select({ count: count() })
-    .from(deals)
-    .where(and(eq(deals.agencyId, agencyId), eq(deals.status, "CLOSED_WON")));
+  const wonDealsCount = allDeals.filter(d => d.status === "CLOSED_WON").length;
 
-  const conversionRate = dealCount.count > 0
-    ? Math.round((wonDeals.count / dealCount.count) * 100)
+  const conversionRate = dealCount > 0
+    ? Math.round((wonDealsCount / dealCount) * 100)
     : 0;
 
   // 3. Deals Trend (Last 30 days)
@@ -118,15 +118,22 @@ async function getAgencyStats(agencyId: string) {
     orderBy: [desc(tickets.createdAt)],
   });
 
+  // 7. AI Insights
+  const aiInsights = allDeals
+    .filter(d => d.status === "OPEN")
+    .flatMap(d => getDealInsights(d))
+    .slice(0, 3);
+
   return {
     clients: clientCount.count,
-    deals: dealCount.count,
+    deals: dealCount,
     openTickets: openTicketCount.count,
     conversionRate,
     dealsTrend,
     ticketsStatus,
     pipelineData,
     recentTickets,
+    aiInsights,
   };
 }
 
@@ -162,6 +169,8 @@ export default async function AgencyDashboard() {
         description={`Bem-vindo de volta, ${session?.user.name ?? ""}`}
         className="animate-fade-in-up"
       >
+        <AIBriefing userName={session?.user.name ?? ""} insights={stats.aiInsights} />
+
         <div className="space-y-8">
           {/* Stats Grid */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
