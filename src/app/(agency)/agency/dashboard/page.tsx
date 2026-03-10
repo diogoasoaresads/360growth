@@ -26,12 +26,16 @@ async function getAgencyStats(agencyId: string) {
     .from(clients)
     .where(eq(clients.agencyId, agencyId));
 
-  // Fetch stages first to avoid join issues with legacy data
-  // Stages are linked to pipelines, which are linked to agencies
-  const agencyPipelines = await db.query.pipelines.findMany({
-    where: eq(pipelines.agencyId, agencyId),
-    columns: { id: true }
-  });
+  // Fetch stages — wrapped defensively in case pipelines table has schema drift in production
+  let agencyPipelines: { id: string }[] = [];
+  try {
+    agencyPipelines = await db
+      .select({ id: pipelines.id })
+      .from(pipelines)
+      .where(eq(pipelines.agencyId, agencyId));
+  } catch {
+    agencyPipelines = [];
+  }
 
   const pipelineIds = agencyPipelines.map(p => p.id);
 
