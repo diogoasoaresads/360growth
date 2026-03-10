@@ -2,7 +2,7 @@
 
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { pipelines, pipelineStages } from "@/lib/db/schema";
+import { pipelines, pipelineStages, clients } from "@/lib/db/schema";
 import { eq, and, asc } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { getActiveAgencyIdOrThrow } from "@/lib/active-context";
@@ -50,6 +50,13 @@ export async function createPipeline(clientId: string, name?: string, template?:
     if (!session) throw new Error("Unauthorized");
 
     const agencyId = await getActiveAgencyIdOrThrow();
+
+    // Verify client belongs to this agency
+    const client = await db.query.clients.findFirst({
+        where: and(eq(clients.id, clientId), eq(clients.agencyId, agencyId)),
+    });
+    if (!client) throw new Error("Cliente não encontrado");
+
     const selectedTemplate = template ? TEMPLATES[template] : TEMPLATES.COMERCIAL;
 
     const [newPipeline] = await db.insert(pipelines).values({

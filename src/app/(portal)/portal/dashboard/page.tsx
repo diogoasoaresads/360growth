@@ -56,17 +56,19 @@ export default async function PortalDashboard() {
 
   // Resolve the clientId: for SUPER_ADMIN use activeClientId from user_contexts,
   // for CLIENT look up by userId (portal layout already validates both paths).
+  if (!session) return null;
+
   let clientId: string | null = null;
-  if (session!.user.role === "SUPER_ADMIN") {
+  if (session.user.role === "SUPER_ADMIN") {
     const [ctx] = await db
       .select({ clientId: userContexts.activeClientId })
       .from(userContexts)
-      .where(eq(userContexts.userId, session!.user.id))
+      .where(eq(userContexts.userId, session.user.id))
       .limit(1);
     clientId = ctx?.clientId ?? null;
   } else {
     const clientRecord = await db.query.clients.findFirst({
-      where: eq(clients.userId, session!.user.id),
+      where: eq(clients.userId, session.user.id),
       columns: { id: true },
     });
     clientId = clientRecord?.id ?? null;

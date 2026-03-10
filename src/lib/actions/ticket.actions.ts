@@ -163,9 +163,16 @@ export async function updateTicketStatus(id: string, input: UpdateTicketInput) {
 export async function addTicketMessage(ticketId: string, input: AddTicketMessageInput) {
   const session = await auth();
   if (!session) throw new Error("Unauthorized");
+  const agencyId = await getActiveAgencyIdOrThrow();
 
   const parsed = addTicketMessageSchema.safeParse(input);
   if (!parsed.success) throw new Error("Dados inválidos");
+
+  // Verify ticket belongs to this agency
+  const ticket = await db.query.tickets.findFirst({
+    where: and(eq(tickets.id, ticketId), eq(tickets.agencyId, agencyId)),
+  });
+  if (!ticket) throw new Error("Ticket não encontrado");
 
   const [message] = await db
     .insert(ticketMessages)
@@ -184,7 +191,6 @@ export async function addTicketMessage(ticketId: string, input: AddTicketMessage
     .where(eq(tickets.id, ticketId));
 
   // Notify other party
-  const [ticket] = await db.select().from(tickets).where(eq(tickets.id, ticketId));
   if (ticket) {
     const isAgencySide = session.user.role !== "CLIENT";
     const recipientId = isAgencySide ? ticket.createdBy : ticket.assignedTo;
