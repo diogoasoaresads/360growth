@@ -3,7 +3,7 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Card, CardContent } from "@/components/ui/card";
-import type { Deal, Client, User } from "@/lib/db/schema";
+import type { Deal, Client, User, PipelineStage } from "@/lib/db/schema";
 import { differenceInDays } from "date-fns";
 import { ExternalLink, User as UserIcon, Tag, Globe, Flame, AlertTriangle, Moon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +14,7 @@ import { calculateDealScore, getPriorityLabel, type DealScoreInput } from "@/lib
 interface DealExtended extends Deal {
     client: Client | null;
     responsible: User | null;
+    stage?: PipelineStage | null;
 }
 
 interface DealCardProps {
@@ -74,17 +75,25 @@ export function DealCard({ deal }: DealCardProps) {
                 <div className="flex items-start justify-between gap-2">
                     <div className="flex flex-col gap-1 min-w-0">
                         <div className="flex items-center gap-2">
-                            <div className={cn("h-1.5 w-1.5 rounded-full shrink-0", agingColor)} title={`Última atividade: ${agingLabel}`} />
-                            <p className="font-semibold text-sm group-hover:text-primary transition-colors truncate leading-none">
+                            <div className={cn("h-2 w-2 rounded-full shrink-0 shadow-[0_0_8px_rgba(0,0,0,0.1)]", agingColor)} title={`Última atividade: ${agingLabel}`} />
+                            <p className="font-bold text-sm group-hover:text-primary transition-colors truncate leading-none text-slate-900 dark:text-slate-100">
                                 {deal.title}
                             </p>
                         </div>
-                        <p className="text-[11px] text-muted-foreground truncate ml-3.5 flex items-center gap-2">
-                            {deal.client?.name ?? "Cliente não identificado"}
-                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-slate-100 text-[10px] font-bold text-slate-600 transition-colors group-hover:bg-primary/10 group-hover:text-primary">
-                                <PriorityIcon className="h-3 w-3" /> {score}
+                        <div className="flex items-center gap-2 ml-4">
+                            <p className="text-[11px] text-muted-foreground truncate font-medium">
+                                {deal.client?.name ?? "---"}
+                            </p>
+                            <span className={cn(
+                                "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-tighter transition-all duration-300",
+                                score > 70 ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20" :
+                                    score > 40 ? "bg-amber-500/10 text-amber-600 border border-amber-500/20" :
+                                        "bg-rose-500/10 text-rose-600 border border-rose-500/20"
+                            )}>
+                                <PriorityIcon className="h-2.5 w-2.5" />
+                                SCORE {score}
                             </span>
-                        </p>
+                        </div>
                     </div>
                     <button
                         onPointerDown={(e) => e.stopPropagation()}

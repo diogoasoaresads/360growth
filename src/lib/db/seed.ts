@@ -869,10 +869,10 @@ async function seed() {
     clientId: clienteDemo!.id,
     title: "Projeto de Marketing Digital",
     value: "5000.00",
-    stage: "PROPOSAL",
+    stageId: "PROPOSAL",
     description: "Proposta de gerenciamento de redes sociais e campanhas pagas.",
-    probability: 60,
-    dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    dealProbabilityDynamic: 60,
+    expectedCloseDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     responsibleId: agencyAdminDemo!.id,
   });
 

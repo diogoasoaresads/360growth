@@ -222,7 +222,7 @@ export async function createOrResetDemoData(): Promise<
         .set({
           title: "Projeto de Marketing Digital",
           value: "5000.00",
-          stage: "PROPOSAL",
+          stageId: "PROPOSAL",
           updatedAt: new Date(),
         })
         .where(eq(deals.id, dealId));
@@ -234,7 +234,7 @@ export async function createOrResetDemoData(): Promise<
           clientId,
           title: "Projeto de Marketing Digital",
           value: "5000.00",
-          stage: "PROPOSAL",
+          stageId: "PROPOSAL",
           description: "Gestão de campanhas de performance + SEO",
         })
         .returning();
