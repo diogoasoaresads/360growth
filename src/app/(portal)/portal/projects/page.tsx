@@ -11,20 +11,27 @@ export const metadata = {
     title: "Meus Projetos | Portal do Cliente",
 };
 
+const STATUS_LABELS: Record<string, string> = {
+    OPEN: "Em Andamento",
+    WON: "Ganho",
+    LOST: "Perdido",
+};
+
 export default async function ClientProjectsPage() {
     const session = await auth();
+    if (!session) return null;
 
     let clientId: string | null = null;
-    if (session!.user.role === "SUPER_ADMIN") {
+    if (session.user.role === "SUPER_ADMIN") {
         const [ctx] = await db
             .select({ clientId: userContexts.activeClientId })
             .from(userContexts)
-            .where(eq(userContexts.userId, session!.user.id))
+            .where(eq(userContexts.userId, session.user.id))
             .limit(1);
         clientId = ctx?.clientId ?? null;
     } else {
         const clientRecord = await db.query.clients.findFirst({
-            where: eq(clients.userId, session!.user.id),
+            where: eq(clients.userId, session.user.id),
             columns: { id: true },
         });
         clientId = clientRecord?.id ?? null;
@@ -38,15 +45,6 @@ export default async function ClientProjectsPage() {
         where: eq(deals.clientId, clientId),
         orderBy: [desc(deals.createdAt)],
     });
-
-    const stageLabels: Record<string, string> = {
-        LEAD: "Lead",
-        QUALIFIED: "Qualificado",
-        PROPOSAL: "Proposta",
-        NEGOTIATION: "Negociação",
-        CLOSED_WON: "Ganho",
-        CLOSED_LOST: "Perdido",
-    };
 
     return (
         <div className="p-6">
@@ -71,10 +69,7 @@ export default async function ClientProjectsPage() {
                                 <CardHeader className="pb-4">
                                     <div className="flex justify-between items-start mb-1">
                                         <Badge variant="secondary" className="text-[10px] uppercase font-bold tracking-wider">
-git add src/app/\(portal\)/portal/projects/page.tsx
-git commit -m "resolve: merge conflict in portal/projects — keep safe stageId fallback"
-git push
-
+                                            {STATUS_LABELS[deal.status] ?? deal.status}
                                         </Badge>
                                         <span className="text-xs text-muted-foreground">
                                             ID: {deal.id.slice(0, 8)}
