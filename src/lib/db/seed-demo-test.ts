@@ -291,7 +291,7 @@ async function seedDemoTest() {
   });
 
   if (existingContacts.length === 0) {
-    await db.insert(contacts).values([
+    const contactsToInsert: (typeof contacts.$inferInsert)[] = [
       {
         agencyId,
         clientId: client1!.id,
@@ -319,7 +319,10 @@ async function seedDemoTest() {
         position: "Sócio-fundador",
         notes: "Toma todas as decisões de marketing.",
       },
-    ]);
+    ];
+    for (const c of contactsToInsert) {
+      await db.insert(contacts).values(c);
+    }
     console.log("  ✓ 3 contatos criados");
   }
 
