@@ -10,10 +10,11 @@ import { eq } from "drizzle-orm";
 
 export default async function PortalSettingsPage() {
     const session = await auth();
-    const user = session?.user;
+    if (!session) return null;
+    const user = session.user;
 
     const client = await db.query.clients.findFirst({
-        where: eq(clients.userId, user!.id),
+        where: eq(clients.userId, user.id),
     });
 
     return (

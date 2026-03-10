@@ -158,16 +158,20 @@ export async function processWorkflowEvent(
                         });
                         break;
 
-                    case "SEND_NOTIFICATION":
-                        await db.insert(notifications).values({
-                            userId: (data.metadata?.ownerId as string) || agencyId, // fallback to agency admin
-                            agencyId,
-                            title: (payload.title as string) || "Alerta de Automação CRM",
-                            message: (payload.message as string) || `O evento ${event} disparou uma regra.`,
-                            type: "DEAL",
-                            link: `/agency/crm/pipeline?dealId=${data.entityId}`,
-                        });
+                    case "SEND_NOTIFICATION": {
+                        const targetId = (data.metadata?.ownerId as string) || (payload.userId as string);
+                        if (targetId) {
+                            await db.insert(notifications).values({
+                                userId: targetId,
+                                agencyId,
+                                title: (payload.title as string) || "Alerta de Automação CRM",
+                                message: (payload.message as string) || `O evento ${event} disparou uma regra.`,
+                                type: "DEAL",
+                                link: `/agency/crm/pipeline?dealId=${data.entityId}`,
+                            });
+                        }
                         break;
+                    }
                 }
             }
         }

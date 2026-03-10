@@ -30,9 +30,10 @@ const PRIORITY_LABELS: Record<TicketPriority, string> = {
 
 export default async function PortalTicketsPage() {
   const session = await auth();
+  if (!session) return null;
 
   const client = await db.query.clients.findFirst({
-    where: eq(clients.userId, session!.user.id),
+    where: eq(clients.userId, session.user.id),
   });
 
   if (!client) {
