@@ -27,10 +27,16 @@ export default async function AdminLayout({
   );
 
   // Fetch all agencies for the context switcher dropdown
-  const agenciesList = await db
-    .select({ id: agencies.id, name: agencies.name })
-    .from(agencies)
-    .orderBy(asc(agencies.name));
+  let agenciesList: { id: string; name: string }[] = [];
+  try {
+    agenciesList = await db
+      .select({ id: agencies.id, name: agencies.name })
+      .from(agencies)
+      .orderBy(asc(agencies.name));
+  } catch (err) {
+    console.error("[admin/layout] Failed to load agencies list:", err);
+    // Non-fatal — context switcher will show empty list
+  }
 
   // ── Unified Workspace Shell (feature-flagged, PO only) ─────────────────────
   if (features.useUnifiedShell) {

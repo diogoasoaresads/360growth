@@ -71,7 +71,10 @@ export default async function ClientProjectsPage() {
                                 <CardHeader className="pb-4">
                                     <div className="flex justify-between items-start mb-1">
                                         <Badge variant="secondary" className="text-[10px] uppercase font-bold tracking-wider">
-                                            {stageLabels[deal.stageId!] || deal.stageId}
+git add src/app/\(portal\)/portal/projects/page.tsx
+git commit -m "resolve: merge conflict in portal/projects — keep safe stageId fallback"
+git push
+
                                         </Badge>
                                         <span className="text-xs text-muted-foreground">
                                             ID: {deal.id.slice(0, 8)}

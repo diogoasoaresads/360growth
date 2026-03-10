@@ -8,6 +8,8 @@ import {
   plans,
   auditLogs,
 } from "@/lib/db/schema";
+import { generatePasswordResetToken } from "@/lib/auth/password-reset-token";
+import { sendSystemEmail } from "@/lib/messaging/email";
 import { auth } from "@/lib/auth";
 import {
   eq,
@@ -265,7 +267,22 @@ export async function sendPasswordReset(
       .where(eq(users.id, userId));
     if (!user) return { success: false, error: "Usuário não encontrado" };
 
-    // TODO: Integrate with Resend to send actual reset email
+    const token = await generatePasswordResetToken(user.email);
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+    const resetUrl = `${appUrl}/reset-password?token=${token}&email=${encodeURIComponent(user.email)}`;
+
+    await sendSystemEmail({
+      to: user.email,
+      templateKey: "password_reset",
+      variables: {
+        resetUrl,
+        userName: user.name ?? "Usuário",
+        appName: "360growth",
+        expiresIn: "1 hora",
+      },
+      actorUserId: callerSession.user.id,
+    });
+
     await db.insert(auditLogs).values({
       userId: callerSession.user.id,
       action: "user.password_reset",

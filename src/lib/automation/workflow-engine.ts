@@ -3,7 +3,7 @@ import { automationWorkflows, tasks, notifications, dealAutomationRules, deals }
 import { eq, and } from "drizzle-orm";
 import type { AutomationTrigger, TicketPriority } from "@/lib/db/schema";
 import { sendSystemEmail } from "@/lib/messaging/email";
-import { sendCRMMessage } from "@/lib/actions/crm-messenger.actions";
+import { sendCRMMessageInternal } from "@/lib/actions/crm-messenger.actions";
 
 /**
  * The Workflow Engine processes system events and executes matching automation rules.
@@ -97,7 +97,7 @@ export async function processWorkflowEvent(
 
                     case "SEND_WHATSAPP":
                         if (data.entityType === "DEAL") {
-                            await sendCRMMessage({
+                            await sendCRMMessageInternal({
                                 dealId: data.entityId,
                                 channel: "whatsapp",
                                 content: (payload.message as string) || "Olá! Recebemos seu interesse.",
@@ -132,14 +132,9 @@ export async function processWorkflowEvent(
 
             for (const rule of dealRules) {
                 const payload = rule.actionPayload as Record<string, unknown>;
+                // Note: delayHours/delayDays are stored but execution is immediate.
+                // A job queue (e.g. Bull/SQS) is required for true deferred execution.
                 const delayMs = (rule.delayHours || 0) * 60 * 60 * 1000 + (rule.delayDays || 0) * 24 * 60 * 60 * 1000;
-
-                // Simple Simulation of Delay (In production use a Queue/Scheduler)
-                if (delayMs > 0) {
-                    console.log(`[Workflow] Delaying action for ${delayMs}ms for Deal ${data.entityId}`);
-                    // setTimeout would only work in some serverless environments if not long-running. 
-                    // For now, we execute directly as a proof of concept.
-                }
 
                 switch (rule.actionType) {
                     case "CREATE_TASK":
@@ -156,7 +151,7 @@ export async function processWorkflowEvent(
                         break;
 
                     case "SEND_WHATSAPP":
-                        await sendCRMMessage({
+                        await sendCRMMessageInternal({
                             dealId: data.entityId,
                             channel: "whatsapp",
                             content: (payload.message as string) || "Olá!",
