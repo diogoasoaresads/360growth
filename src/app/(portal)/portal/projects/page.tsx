@@ -41,10 +41,15 @@ export default async function ClientProjectsPage() {
         return <div className="p-8 text-center text-muted-foreground">Cliente não encontrado.</div>;
     }
 
-    const clientDeals = await db.query.deals.findMany({
-        where: eq(deals.clientId, clientId),
-        orderBy: [desc(deals.createdAt)],
-    });
+    let clientDeals: (typeof deals.$inferSelect)[] = [];
+    try {
+        clientDeals = await db.query.deals.findMany({
+            where: eq(deals.clientId, clientId),
+            orderBy: [desc(deals.createdAt)],
+        });
+    } catch {
+        clientDeals = [];
+    }
 
     return (
         <div className="p-6">

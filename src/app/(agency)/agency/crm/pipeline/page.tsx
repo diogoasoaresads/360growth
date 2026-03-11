@@ -54,18 +54,23 @@ export default async function PipelinePage({
   const activePipeline = clientPipelines.find(p => p.id === activePipelineId);
 
   // 4. Get Deals for active pipeline
-  const pipelineDeals = activePipelineId ? await db.query.deals.findMany({
-    where: and(
-      eq(deals.agencyId, agencyId),
-      eq(deals.pipelineId, activePipelineId)
-    ),
-    with: {
-      client: true,
-      responsible: true,
-      stage: true,
-    },
-    orderBy: (deals, { desc }) => [desc(deals.createdAt)],
-  }) : [];
+  let pipelineDeals: DealWithClient[] = [];
+  try {
+    pipelineDeals = activePipelineId ? await db.query.deals.findMany({
+      where: and(
+        eq(deals.agencyId, agencyId),
+        eq(deals.pipelineId, activePipelineId)
+      ),
+      with: {
+        client: true,
+        responsible: true,
+        stage: true,
+      },
+      orderBy: (deals, { desc }) => [desc(deals.createdAt)],
+    }) as DealWithClient[] : [];
+  } catch {
+    pipelineDeals = [];
+  }
 
   return (
     <PageContainer

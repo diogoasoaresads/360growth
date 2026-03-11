@@ -42,11 +42,16 @@ async function getClientStats(clientId: string) {
     limit: 3,
   });
 
-  const activeDeals = await db.query.deals.findMany({
-    where: eq(deals.clientId, client.id),
-    orderBy: [desc(deals.updatedAt)],
-    limit: 3,
-  });
+  let activeDeals: (typeof deals.$inferSelect)[] = [];
+  try {
+    activeDeals = await db.query.deals.findMany({
+      where: eq(deals.clientId, client.id),
+      orderBy: [desc(deals.updatedAt)],
+      limit: 3,
+    });
+  } catch {
+    activeDeals = [];
+  }
 
   return { client, openCount: openCount.count, resolvedCount: resolvedCount.count, dealCount: dealCount.count, recentTickets, activeDeals };
 }
