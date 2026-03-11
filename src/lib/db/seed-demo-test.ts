@@ -299,7 +299,6 @@ async function seedDemoTest() {
         email: "roberto@techvision.com",
         phone: "(11) 3456-7890",
         position: "CTO",
-        notes: "Principal ponto de contato técnico.",
       },
       {
         agencyId,
@@ -308,7 +307,6 @@ async function seedDemoTest() {
         email: "mariana@techvision.com",
         phone: "(11) 3456-7891",
         position: "Gerente de Marketing",
-        notes: "Responsável pelo orçamento de mídia.",
       },
       {
         agencyId,
@@ -317,7 +315,6 @@ async function seedDemoTest() {
         email: "lucas@boutique.com",
         phone: "(21) 3321-5566",
         position: "Sócio-fundador",
-        notes: "Toma todas as decisões de marketing.",
       },
     ];
     for (const c of contactsToInsert) {
