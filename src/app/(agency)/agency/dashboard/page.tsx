@@ -45,9 +45,15 @@ async function getAgencyStats(agencyId: string) {
     })
     : [];
 
-  const allDealsRaw = await db.query.deals.findMany({
-    where: eq(deals.agencyId, agencyId),
-  });
+  let allDealsRaw: (typeof deals.$inferSelect)[] = [];
+  try {
+    allDealsRaw = await db.query.deals.findMany({
+      where: eq(deals.agencyId, agencyId),
+    });
+  } catch {
+    // deals table may have columns not yet migrated in production
+    allDealsRaw = [];
+  }
 
   // Manually attach stage to deals safely
   const allDeals = allDealsRaw.map(d => ({
