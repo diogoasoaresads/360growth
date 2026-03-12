@@ -3,6 +3,6 @@ import { ImpersonationBanner } from "./impersonation-banner";
 
 export async function ImpersonationBannerWrapper() {
   const session = await auth();
-  if (!session?.user.isImpersonating) return null;
+  if (!session?.user?.isImpersonating) return null;
   return <ImpersonationBanner session={session} />;
 }
