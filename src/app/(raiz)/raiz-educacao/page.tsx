@@ -494,8 +494,43 @@ export default function RaizEducacaoPage() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.setAttribute("data-revealed", "");
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+    document.querySelectorAll("[data-reveal]").forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <div className="min-h-screen bg-white font-sans" style={{ fontFamily: "'Inter Variable', 'Inter', sans-serif" }}>
+      <style>{`
+        [data-reveal] {
+          opacity: 0;
+          transform: translateY(36px);
+          transition: opacity 0.7s cubic-bezier(.4,0,.2,1), transform 0.7s cubic-bezier(.4,0,.2,1);
+        }
+        [data-reveal="left"] { transform: translateX(-40px); }
+        [data-reveal="right"] { transform: translateX(40px); }
+        [data-reveal="scale"] { transform: scale(0.92); }
+        [data-reveal][data-revealed] {
+          opacity: 1;
+          transform: translateY(0) translateX(0) scale(1);
+        }
+        [data-delay="100"] { transition-delay: 0.1s; }
+        [data-delay="200"] { transition-delay: 0.2s; }
+        [data-delay="300"] { transition-delay: 0.3s; }
+        [data-delay="400"] { transition-delay: 0.4s; }
+        [data-delay="500"] { transition-delay: 0.5s; }
+      `}</style>
 
       {/* ── Utility Bar ──────────────────────────────────────────────────────── */}
       <div className="bg-emerald-900 text-white hidden md:block">
@@ -696,12 +731,12 @@ export default function RaizEducacaoPage() {
       {/* ── Intro Section ────────────────────────────────────────────────────── */}
       <section className="bg-white py-20">
         <div className="max-w-5xl mx-auto px-6 text-center">
-          <p className="text-emerald-600 font-bold text-sm uppercase tracking-widest mb-4">nossa essência é</p>
-          <h2 className="text-5xl md:text-6xl font-black text-stone-900 leading-tight mb-6">
+          <p data-reveal className="text-emerald-600 font-bold text-sm uppercase tracking-widest mb-4">nossa essência é</p>
+          <h2 data-reveal data-delay="100" className="text-5xl md:text-6xl font-black text-stone-900 leading-tight mb-6">
             Educação com<br />
             <span className="text-emerald-700">Propósito</span>
           </h2>
-          <p className="text-stone-600 text-lg md:text-xl leading-relaxed max-w-3xl mx-auto">
+          <p data-reveal data-delay="200" className="text-stone-600 text-lg md:text-xl leading-relaxed max-w-3xl mx-auto">
             Fundada em 1993, a Raiz Educação acredita que o verdadeiro aprendizado começa quando cada aluno se sente
             visto, valorizado e desafiado. Combinamos excelência acadêmica, formação humana e inovação pedagógica para
             preparar jovens que transformarão o Brasil e o mundo.
@@ -725,7 +760,7 @@ export default function RaizEducacaoPage() {
         <div className="relative z-10 max-w-7xl mx-auto px-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((stat, i) => (
-              <div key={i} className="text-center">
+              <div key={i} data-reveal data-delay={String(i * 100)} className="text-center">
                 <div className="text-4xl md:text-5xl font-black text-white mb-2">{stat.value}</div>
                 <div className="text-emerald-300 text-sm font-medium leading-tight">{stat.label}</div>
               </div>
@@ -746,14 +781,14 @@ export default function RaizEducacaoPage() {
                 className={`flex flex-col ${i % 2 === 1 ? "md:flex-row-reverse" : "md:flex-row"} items-stretch min-h-[480px]`}
               >
                 {/* Image */}
-                <div className="w-full md:w-1/2 relative overflow-hidden">
+                <div data-reveal={i % 2 === 0 ? "left" : "right"} className="w-full md:w-1/2 relative overflow-hidden">
                   <div className={`absolute inset-0 ${section.imageBg} flex items-center justify-center p-12`}>
                     {section.imageSvg}
                   </div>
                 </div>
 
                 {/* Text */}
-                <div className="w-full md:w-1/2 flex items-center">
+                <div data-reveal={i % 2 === 0 ? "right" : "left"} data-delay="100" className="w-full md:w-1/2 flex items-center">
                   <div className="p-12 md:p-16">
                     <p className="text-emerald-600 text-xs font-bold uppercase tracking-widest mb-3">
                       {section.subtitle}
@@ -790,8 +825,8 @@ export default function RaizEducacaoPage() {
       <section className="bg-emerald-950 py-20">
         <div className="max-w-5xl mx-auto px-6">
           <div className="text-center mb-12">
-            <p className="text-emerald-500 text-xs font-bold uppercase tracking-widest mb-3">quem faz a raiz</p>
-            <h2 className="text-4xl md:text-5xl font-black text-white">Vozes da Comunidade</h2>
+            <p data-reveal className="text-emerald-500 text-xs font-bold uppercase tracking-widest mb-3">quem faz a raiz</p>
+            <h2 data-reveal data-delay="100" className="text-4xl md:text-5xl font-black text-white">Vozes da Comunidade</h2>
           </div>
           <TestimonialSlider items={testimonials} />
         </div>
@@ -801,13 +836,15 @@ export default function RaizEducacaoPage() {
       <section className="bg-stone-50 py-24">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-14">
-            <p className="text-emerald-600 text-xs font-bold uppercase tracking-widest mb-3">próximo passo</p>
-            <h2 className="text-4xl md:text-5xl font-black text-stone-900">Faça Parte da Raiz</h2>
+            <p data-reveal className="text-emerald-600 text-xs font-bold uppercase tracking-widest mb-3">próximo passo</p>
+            <h2 data-reveal data-delay="100" className="text-4xl md:text-5xl font-black text-stone-900">Faça Parte da Raiz</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {ctaCards.map((card, i) => (
               <div
                 key={i}
+                data-reveal
+                data-delay={String(i * 150)}
                 className={`${card.bg} rounded-3xl p-8 text-white flex flex-col group hover:-translate-y-2 transition-transform shadow-lg`}
               >
                 <div className="mb-6">{card.icon}</div>
@@ -832,7 +869,7 @@ export default function RaizEducacaoPage() {
       <section className="bg-white py-24">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-12 gap-4">
-            <div>
+            <div data-reveal>
               <p className="text-emerald-600 text-xs font-bold uppercase tracking-widest mb-2">o que está acontecendo</p>
               <h2 className="text-4xl md:text-5xl font-black text-stone-900">Notícias & Destaques</h2>
             </div>
@@ -853,9 +890,9 @@ export default function RaizEducacaoPage() {
       {/* ── Social Section ───────────────────────────────────────────────────── */}
       <section className="bg-emerald-900 py-16">
         <div className="max-w-5xl mx-auto px-6 text-center">
-          <p className="text-emerald-400 text-xs font-bold uppercase tracking-widest mb-4">nos acompanhe</p>
-          <h2 className="text-3xl font-black text-white mb-8">Conecte-se com a Raiz</h2>
-          <div className="flex justify-center gap-4 flex-wrap">
+          <p data-reveal className="text-emerald-400 text-xs font-bold uppercase tracking-widest mb-4">nos acompanhe</p>
+          <h2 data-reveal data-delay="100" className="text-3xl font-black text-white mb-8">Conecte-se com a Raiz</h2>
+          <div data-reveal data-delay="200" className="flex justify-center gap-4 flex-wrap">
             {[
               { label: "Instagram", icon: "📷", href: "#" },
               { label: "YouTube", icon: "▶", href: "#" },
