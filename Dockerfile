@@ -66,4 +66,4 @@ ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
 # Run migrations at container startup, then start the Next.js server
-CMD ["sh", "-c", "npm run db:migrate && node server.js"]
+CMD ["node", "server.js"]
