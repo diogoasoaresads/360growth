@@ -412,8 +412,6 @@ function TestimonialSlider({ items }: { items: TestimonialItem[] }) {
 
 function NewsSlider({ items }: { items: NewsItem[] }) {
   const [current, setCurrent] = useState(0);
-  const visibleCount = 1; // will show 1 at a time on mobile, handle via CSS
-
   return (
     <div className="relative">
       {/* Desktop: show 3 cards */}
