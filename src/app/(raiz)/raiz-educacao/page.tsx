@@ -128,7 +128,7 @@ const testimonials: TestimonialItem[] = [
     author: "Ana Beatriz Souza",
     role: "Ex-aluna, turma de 2022 — FUVEST",
     initials: "AB",
-    color: "bg-emerald-600",
+    color: "bg-emerald-700",
   },
   {
     quote:
@@ -136,7 +136,7 @@ const testimonials: TestimonialItem[] = [
     author: "Prof. Marcos Andrade",
     role: "Diretor Pedagógico",
     initials: "MA",
-    color: "bg-amber-600",
+    color: "bg-amber-700",
   },
   {
     quote:
@@ -144,7 +144,7 @@ const testimonials: TestimonialItem[] = [
     author: "Pedro Henrique Lima",
     role: "Aluno do 3º ano do Ensino Médio",
     initials: "PH",
-    color: "bg-teal-600",
+    color: "bg-teal-700",
   },
 ];
 
@@ -231,7 +231,7 @@ const newsItems: NewsItem[] = [
     summary:
       "Sete estudantes do Ensino Médio representaram a escola na OBMEP e trouxeram três medalhas de ouro e quatro de prata — melhor resultado da história da instituição.",
     category: "Destaque",
-    color: "bg-emerald-600",
+    color: "bg-emerald-700",
   },
   {
     title: "Novo laboratório de robótica e IA é inaugurado para o Ensino Fundamental II",
@@ -239,7 +239,7 @@ const newsItems: NewsItem[] = [
     summary:
       "Com equipamentos de última geração, o espaço acolherá projetos de programação, automação e inteligência artificial a partir do 6º ano.",
     category: "Infraestrutura",
-    color: "bg-teal-600",
+    color: "bg-teal-700",
   },
   {
     title: "Raiz Educação lança programa de mentoria para alunos do 3º ano do Médio",
@@ -247,7 +247,7 @@ const newsItems: NewsItem[] = [
     summary:
       "Ex-alunos aprovados nas melhores universidades do país retornam à escola para orientar os formandos durante a jornada de vestibulares.",
     category: "Comunidade",
-    color: "bg-amber-600",
+    color: "bg-amber-700",
   },
   {
     title: "Feira Cultural celebra a diversidade com apresentações de 12 países",
@@ -388,14 +388,20 @@ function TestimonialSlider({ items }: { items: TestimonialItem[] }) {
         >
           ‹
         </button>
-        <div className="flex gap-2">
+        <div className="flex gap-1">
           {items.map((_, i) => (
             <button
               key={i}
               onClick={() => setCurrent(i)}
-              className={`w-2.5 h-2.5 rounded-full transition-all ${i === current ? "bg-emerald-400 w-6" : "bg-emerald-700"}`}
+              className="w-8 h-6 flex items-center justify-center"
               aria-label={`Slide ${i + 1}`}
-            />
+            >
+              <span
+                className={`block w-6 h-2.5 rounded-full transition-transform duration-300 ${
+                  i === current ? "bg-emerald-400 scale-x-100" : "bg-emerald-700 scale-x-[0.42]"
+                }`}
+              />
+            </button>
           ))}
         </div>
         <button
@@ -427,7 +433,7 @@ function NewsSlider({ items }: { items: NewsItem[] }) {
                 {item.title}
               </h3>
               <p className="text-stone-500 text-sm leading-relaxed line-clamp-3">{item.summary}</p>
-              <div className="mt-4 text-xs text-stone-400 font-medium">{item.date}</div>
+              <div className="mt-4 text-xs text-stone-500 font-medium">{item.date}</div>
             </div>
           </article>
         ))}
@@ -449,20 +455,26 @@ function NewsSlider({ items }: { items: NewsItem[] }) {
                   </span>
                   <h3 className="font-bold text-stone-800 text-base leading-snug mb-3">{item.title}</h3>
                   <p className="text-stone-500 text-sm leading-relaxed">{item.summary}</p>
-                  <div className="mt-4 text-xs text-stone-400 font-medium">{item.date}</div>
+                  <div className="mt-4 text-xs text-stone-500 font-medium">{item.date}</div>
                 </div>
               </div>
             </article>
           ))}
         </div>
-        <div className="flex justify-center gap-2 mt-4">
+        <div className="flex justify-center gap-1 mt-4">
           {items.map((_, i) => (
             <button
               key={i}
               onClick={() => setCurrent(i)}
-              className={`w-2 h-2 rounded-full transition-all ${i === current ? "bg-emerald-600 w-5" : "bg-stone-300"}`}
+              className="w-8 h-6 flex items-center justify-center"
               aria-label={`Notícia ${i + 1}`}
-            />
+            >
+              <span
+                className={`block w-5 h-2 rounded-full transition-transform duration-300 ${
+                  i === current ? "bg-emerald-700 scale-x-100" : "bg-stone-300 scale-x-[0.4]"
+                }`}
+              />
+            </button>
           ))}
         </div>
       </div>
@@ -986,8 +998,8 @@ export default function RaizEducacaoPage() {
 
         {/* Bottom bar */}
         <div className="border-t border-stone-800">
-          <div className="max-w-7xl mx-auto px-6 py-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-stone-500">
-            <div>© {new Date().getFullYear()} Raiz Educação. Todos os direitos reservados.</div>
+          <div className="max-w-7xl mx-auto px-6 py-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-stone-400">
+            <div suppressHydrationWarning>© {new Date().getFullYear()} Raiz Educação. Todos os direitos reservados.</div>
             <div className="flex gap-6">
               <Link href="#" className="hover:text-stone-300 transition-colors">Política de Privacidade</Link>
               <Link href="#" className="hover:text-stone-300 transition-colors">Termos de Uso</Link>
